@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory
 /**
  * @author suresh thalamati
  */
-class NetezzaDataSliceReader (conn:Connection, baseQuery:String) extends Iterator[NetezzaRecord]
+class NetezzaDataReader (conn:Connection, baseQuery:String) extends Iterator[NetezzaRecord]
 {
   private val log = LoggerFactory.getLogger(getClass)
 
