@@ -4,13 +4,21 @@ import java.io.{FileInputStream, InputStreamReader, BufferedReader}
 import java.sql.{PreparedStatement, Connection}
 
 
+import org.apache.spark.Partition
+import org.apache.spark.sql.sources.Filter
 import org.slf4j.LoggerFactory
 
 /**
+ * Creates reader for the given partitions.
+ *
  * @author suresh thalamati
  */
-class NetezzaDataReader (conn:Connection, baseQuery:String) extends Iterator[NetezzaRecord]
-{
+class NetezzaDataReader(conn: Connection,
+                        table: String,
+                        columns: Array[String],
+                        filters: Array[Filter],
+                        partition: NetezzaPartition) extends Iterator[NetezzaRecord] {
+
   private val log = LoggerFactory.getLogger(getClass)
 
   val pipe = NetezzaUtils.createPipe();
@@ -30,14 +38,19 @@ class NetezzaDataReader (conn:Connection, baseQuery:String) extends Iterator[Net
   val escapeChar:Char = '\\';
   val delimiter:Char = '\001';
 
-
+  val baseQuery = {
+    val whereClause = NetezzaFilters.getWhereClause(filters, partition)
+    val colStrBuilder = new StringBuilder()
+    colStrBuilder.append(columns(0))
+    columns.drop(1).foreach(col => colStrBuilder.append(",").append(col))
+     s"SELECT $colStrBuilder FROM $table $whereClause"
+  }
     // build external table initialized by base query
     var query:StringBuilder  = new StringBuilder()
     query.append("CREATE EXTERNAL TABLE '" + pipe + "'")
     query.append(" USING (delimiter '" + delimiter + "' ")
-    if (escapeChar != null) {
-      query.append(" escapeChar '" + escapeChar + "' ")
-    }
+    query.append(" escapeChar '" + escapeChar + "' ")
+
     query.append(" REMOTESOURCE 'JDBC' NullValue 'null' BoolStyle 'T_F'")
     query.append(")")
     query.append(" AS " + baseQuery.toString() + " ")
@@ -57,7 +70,6 @@ class NetezzaDataReader (conn:Connection, baseQuery:String) extends Iterator[Net
     input = new BufferedReader(isr)
 
     recordParser = new NetezzaRecordParser(delimiter, escapeChar)
-
 
 
 

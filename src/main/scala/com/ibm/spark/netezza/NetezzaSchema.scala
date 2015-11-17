@@ -39,7 +39,7 @@ private[netezza] object  NetezzaSchema {
    * @throws SQLException if the table contains an unsupported type.
    */
   def getSparkSqlSchema(url:String, properties: Properties, table: String): StructType = {
-    val conn:Connection =  NetezzaJdbcUtils.getConnection(url , properties)
+    val conn:Connection =  NetezzaJdbcUtils.getConnector(url , properties)()
     try {
       val rs = conn.prepareStatement(s"SELECT * FROM $table WHERE 1=0").executeQuery()
       try {

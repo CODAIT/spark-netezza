@@ -89,4 +89,10 @@ class NetezzaRecord(row: Array[String]) {
   def wasNull(pos: Int): Boolean = {
     row(pos) == null
   }
+
+
+  // Suresh temp method for testing ..
+  def getNetezzaValues(): Array[String] = {
+    row
+  }
 }

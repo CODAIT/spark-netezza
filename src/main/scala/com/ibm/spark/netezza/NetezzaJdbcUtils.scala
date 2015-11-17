@@ -35,13 +35,6 @@ private[netezza] object  NetezzaJdbcUtils {
     }
   }
 
-  def getConnection(url: String, properties: Properties):Connection = {
-    Class.forName("org.netezza.Driver")
-    DriverManager.getConnection(url, properties)
-  }
-
-
-
   def quoteIdentifier(colName:String):String = {
     s"""$colName"""
   }

@@ -44,21 +44,19 @@ private[netezza] case class NetezzaRelation(
   extends BaseRelation
   with PrunedFilteredScan {
 
-  override val needConversion: Boolean = false
-
   override val schema: StructType = NetezzaSchema.getSparkSqlSchema(url, properties, table)
 
   override def buildScan(requiredColumns: Array[String], filters: Array[Filter]): RDD[Row] = {
 
-    NetezzaRDD.scanTable(
+    new NetezzaRDD(
       sqlContext.sparkContext,
-      schema,
-      url,
-      properties,
+      NetezzaJdbcUtils.getConnector(url, properties),
+      NetezzaSchema.pruneSchema(schema, requiredColumns),
       table,
       requiredColumns,
       filters,
-      parts).asInstanceOf[RDD[Row]]
+      parts,
+      properties)
   }
 }
 
