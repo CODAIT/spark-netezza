@@ -64,3 +64,16 @@ df = sqlContext.read \
   .option('numPartitions','4') \
   .load()
 ```
+
+#### SQL
+
+```sql
+CREATE TABLE my_table
+USING com.ibm.spark.netezza
+OPTIONS (
+  url 'jdbc:netezza://netezzahost:5480/database',
+  user 'username',
+  password 'password',
+  dbtable 'tablename'
+);
+```
