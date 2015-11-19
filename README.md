@@ -1,14 +1,22 @@
 # `spark-netezza`
 
-A library to load data into Spark SQL DataFrames from IBM Netezza. JDBC is used to automatically trigger the appropriate commands like `SELECT` on Netezza.
-
-This library is more suited to ETL than interactive queries, since large amounts of data could be extracted for each query execution. If you plan to perform many queries against the same Netezza tables then we recommend saving the extracted data in a format such as Parquet.
+A connector to load data into Spark SQL DataFrames from IBM Netezza database.
 
 ## Usage
 
+### Specifying Dependencies
+
+You can use spark-shell, spark-sql, pyspark or spark-submit based on your scenario to invoke spark-netezza connector. Dependency on netezza jdbc driver needs to be provided. For example, for spark-shell:
+
+    spark-shell --jars /path/to/spark-netezza-assembly-0.1.jar --driver-class-path /path/to/nzjdbc.jar
+
+If you prefer not to use the fat jar, an extra dependency flag needs to be set:
+
+    --packages org.apache.commons:commons-csv:1.2
+
 ### Data Sources API
 
-You can use spark-netezza via the Data Sources API in Scala, Python or SQL, as follows:
+You can use spark-netezza connector via the Spark Data Sources API in Scala, Java, Python or SQL, as follows:
 
 #### Scala
 
@@ -77,3 +85,37 @@ OPTIONS (
   dbtable 'tablename'
 );
 ```
+
+## Building From Source
+
+### Scala 2.10
+spark-netezza build supports Scala 2.10 by default, if Scala 2.11 artifact is needed, please refer to [Version Cross Build](#version-cross-build)
+
+#### Building General Artifacts
+To generate regular binary, in the root directory run:
+
+    sbt package
+
+To generate assembly jar, in the root directory run:
+
+    sbt assembly
+
+The artifacts will be generated to:
+
+    spark-netezza/target/scala-{binary.version}/
+
+#### Version Cross Build
+This produces artifacts for both scala 2.10 and 2.11:
+
+Start SBT:
+
+     sbt
+
+Run in the SBT shell:
+
+     + package
+
+#### Using sbt-spark-package Plugin
+spark-netezza connector supports sbt-spark-package plugin, to publish to local ivy repository, run:
+
+    sbt spPublishLocal
