@@ -19,13 +19,9 @@ package com.ibm.spark.netezza
 
 import java.util.Properties
 
-
-import org.apache.spark.sql.sources.BaseRelation
-import org.apache.spark.sql.sources.Filter
-import org.apache.spark.sql.sources.PrunedFilteredScan
-
 import org.apache.spark.Partition
 import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.sources.{BaseRelation, Filter, PrunedFilteredScan}
 import org.apache.spark.sql.types.StructType
 import org.apache.spark.sql.{Row, SQLContext}
 
@@ -40,7 +36,8 @@ private[netezza] case class NetezzaRelation(
     url: String,
     table: String,
     parts: Array[Partition],
-    properties: Properties = new Properties())(@transient val sqlContext: SQLContext)
+    properties: Properties = new Properties(),
+    numPartitions: Int = 4)(@transient val sqlContext: SQLContext)
   extends BaseRelation
   with PrunedFilteredScan {
 
@@ -48,15 +45,31 @@ private[netezza] case class NetezzaRelation(
 
   override def buildScan(requiredColumns: Array[String], filters: Array[Filter]): RDD[Row] = {
 
-    new NetezzaRDD(
-      sqlContext.sparkContext,
-      NetezzaJdbcUtils.getConnector(url, properties),
-      NetezzaSchema.pruneSchema(schema, requiredColumns),
-      table,
-      requiredColumns,
-      filters,
-      parts,
-      properties)
+    if (requiredColumns.isEmpty) {
+      emptyRowRDD(filters)
+    }
+    else {
+      new NetezzaRDD(
+        sqlContext.sparkContext,
+        NetezzaJdbcUtils.getConnector(url, properties),
+        NetezzaSchema.pruneSchema(schema, requiredColumns),
+        table,
+        requiredColumns,
+        filters,
+        parts,
+        properties)
+    }
+  }
+
+  /**
+    * In case of select count, actual data is not needed to flow through the network to form a RDD,
+    * a RDD with empty rows of the expected count will be returned to be counted.
+    * @param filters the filters to apply to get correct number of rows
+    * @return
+    */
+  private def emptyRowRDD(filters: Array[Filter]): RDD[Row] = {
+    val numRows: Long = NetezzaJdbcUtils.getCountWithFilter(url, properties, table, filters)
+    val emptyRow = Row.empty
+    sqlContext.sparkContext.parallelize(1L to numRows, numPartitions).map(_ => emptyRow)
   }
 }
-

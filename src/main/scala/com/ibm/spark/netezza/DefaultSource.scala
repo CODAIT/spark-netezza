@@ -51,6 +51,6 @@ class DefaultSource extends RelationProvider with DataSourceRegister {
 
     val parts = NetezzaInputFormat.getDataSlicePartition(
       NetezzaJdbcUtils.getConnector(url, properties)(), numPartitions.toInt)
-    NetezzaRelation(url, table, parts, properties)(sqlContext)
+    NetezzaRelation(url, table, parts, properties, numPartitions.toInt)(sqlContext)
   }
 }

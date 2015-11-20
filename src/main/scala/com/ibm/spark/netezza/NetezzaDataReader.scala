@@ -41,8 +41,12 @@ class NetezzaDataReader(conn: Connection,
   val baseQuery = {
     val whereClause = NetezzaFilters.getWhereClause(filters, partition)
     val colStrBuilder = new StringBuilder()
-    colStrBuilder.append(columns(0))
-    columns.drop(1).foreach(col => colStrBuilder.append(",").append(col))
+    if (columns.length > 0) {
+      colStrBuilder.append(columns(0))
+      columns.drop(1).foreach(col => colStrBuilder.append(",").append(col))
+    } else {
+      colStrBuilder.append("1")
+    }
      s"SELECT $colStrBuilder FROM $table $whereClause"
   }
     // build external table initialized by base query

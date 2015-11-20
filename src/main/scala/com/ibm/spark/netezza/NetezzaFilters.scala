@@ -43,6 +43,18 @@ private[netezza] object NetezzaFilters {
   }
 
   /**
+    * Converts filters into a WHERE clause suitable for injection into a Netezza SQL query.
+    */
+  def getFilterClause(filters: Array[Filter]): String = {
+    val filterStrings = filters map generateFilterExpr filter (_ != null)
+    if (filterStrings.size > 0) {
+      val sb = new StringBuilder("WHERE ")
+      filterStrings.foreach(x => sb.append(x).append(" AND "))
+      sb.substring(0, sb.length - 5)
+    } else ""
+  }
+
+  /**
    * Convert the given String into a quotes SQL string value.
    */
   private def quoteValue(value: Any): Any = value match {
@@ -69,17 +81,5 @@ private[netezza] object NetezzaFilters {
     case IsNull(attr) => s"is null $attr"
     case IsNotNull(attr) => s"is not null $attr"
     case _ => null
-  }
-
-  /**
-   * Converts filters into a WHERE clause suitable for injection into a Netezza SQL query.
-   */
-  private def getFilterClause(filters: Array[Filter]): String = {
-    val filterStrings = filters map generateFilterExpr filter (_ != null)
-    if (filterStrings.size > 0) {
-      val sb = new StringBuilder("WHERE ")
-      filterStrings.foreach(x => sb.append(x).append(" AND "))
-      sb.substring(0, sb.length - 5)
-    } else ""
   }
 }

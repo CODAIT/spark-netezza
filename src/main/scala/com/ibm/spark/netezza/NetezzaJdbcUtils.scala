@@ -1,8 +1,10 @@
 package com.ibm.spark.netezza
 
-import java.sql.{DriverManager, Connection}
+import java.sql.{Connection, DriverManager}
 import java.util.Properties
+
 import org.apache.spark.sql.execution.datasources.jdbc.DriverRegistry
+import org.apache.spark.sql.sources.Filter
 import org.slf4j.LoggerFactory
 
 /**
@@ -39,4 +41,24 @@ private[netezza] object  NetezzaJdbcUtils {
     s"""$colName"""
   }
 
+  def getCountWithFilter(url: String, properties: Properties, table: String, filters: Array[Filter]): Long = {
+    val whereClause = NetezzaFilters.getFilterClause(filters)
+    val countQuery = s"SELECT count(*) FROM $table $whereClause"
+    log.info(countQuery)
+    val conn = NetezzaJdbcUtils.getConnector(url, properties)
+    var count: Long = 0
+    try {
+      val results = conn().prepareStatement(countQuery).executeQuery()
+
+      if (results.next()) {
+        count = results.getLong(1)
+      }
+      else {
+        throw new IllegalStateException("Could not read count from Netezza")
+      }
+    } finally {
+      conn().close()
+    }
+    count
+  }
 }
