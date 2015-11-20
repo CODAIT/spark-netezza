@@ -39,13 +39,22 @@ class NetezzaRecordParser(delimiter:Char, escapeChar:Char) {
   def parse(input:String):Array[String] = {
     val parser = CSVParser.parse(input, csvFormat)
     val records = parser.getRecords()
-    // Parsing is one row at a tine , only one record expected.
-    val record = records.get(0);
-    // convert to array.
-    val row = new Array[String](record.size())
-    var pos =0
-    for (i:Int <- 0 until record.size()) {
-      row(i) = if (record.get(i).isEmpty) null else record.get(i)
+    val row = records.isEmpty match {
+      case true => {
+        val nullRow = new Array[String](1)
+        nullRow(0) = null
+        nullRow
+      }
+      case false => {
+        // Parsing is one row at a tine , only one record expected.
+        val record = records.get(0)
+        // convert to array.
+        val nonNullRow = new Array[String](record.size())
+        for (i: Int <- 0 until record.size()) {
+          nonNullRow(i) = if (record.get(i).isEmpty) null else record.get(i)
+        }
+        nonNullRow
+      }
     }
     row
   }
