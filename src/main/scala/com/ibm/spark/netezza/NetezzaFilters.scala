@@ -17,6 +17,8 @@
 
 package com.ibm.spark.netezza
 
+import java.sql.Timestamp
+
 import org.apache.commons.lang3.StringUtils
 import org.apache.spark.sql.sources._
 
@@ -59,6 +61,7 @@ private[netezza] object NetezzaFilters {
    */
   private def quoteValue(value: Any): Any = value match {
     case stringValue: String => s"'${escapeQuotes(stringValue)}'"
+    case tsValue: Timestamp => s"'${tsValue}'"
     case _ => value
   }
 

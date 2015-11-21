@@ -174,12 +174,11 @@ object NetezzaUtils {
       }
       catch {
         case e: SQLException => {
-          if (!receivedEarlyOut) log.error("Error creating external table pipe.")
-          else
-          {
+          if (!receivedEarlyOut) log.error("Error creating external table pipe: " + e.toString)
+          else {
             try conn.rollback()
             catch {
-              case _: Throwable => log.error("Error rolling back create external table.")
+              case _: Throwable => log.error("Error rolling back create external table: " + e.toString)
             }
             setError(e)
           }
