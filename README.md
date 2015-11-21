@@ -89,7 +89,7 @@ OPTIONS (
 ## Building From Source
 
 ### Scala 2.10
-spark-netezza build supports Scala 2.10 by default, if Scala 2.11 artifact is needed, please refer to [Version Cross Build](#version-cross-build)
+spark-netezza build supports Scala 2.10 by default, if Scala 2.11 artifact is needed, please refer to [Scala 2.11](#scala-211) or [Version Cross Build](#version-cross-build)
 
 #### Building General Artifacts
 To generate regular binary, in the root directory run:
@@ -103,6 +103,11 @@ To generate assembly jar, in the root directory run:
 The artifacts will be generated to:
 
     spark-netezza/target/scala-{binary.version}/
+
+### Scala 2.11
+To build against scala 2.11, use '++' option with desired version number, for example:
+
+    sbt ++2.11.7 assembly
 
 #### Version Cross Build
 This produces artifacts for both scala 2.10 and 2.11:
