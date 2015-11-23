@@ -23,16 +23,16 @@ import org.apache.commons.lang3.StringUtils
 import org.apache.spark.sql.sources._
 
 /**
- * Push down filters to the Netezza database. Generates where clause to inject into select statement
- * executed on the Netezza database. This implementation is based on the spark sql builtin
- * jdbc data source.
- */
+  * Push down filters to the Netezza database. Generates where clause to inject into select statement
+  * executed on the Netezza database. This implementation is based on the spark sql builtin
+  * jdbc data source.
+  */
 
 private[netezza] object NetezzaFilters {
 
   /**
-   * Returns a WHERE clause representing both `filters`, if any, and the current partition.
-   */
+    * Returns a WHERE clause representing both `filters`, if any, and the current partition.
+    */
   def getWhereClause(filters: Array[Filter], part: NetezzaPartition): String = {
     val filterWhereClause = getFilterClause(filters)
     if (part.whereClause != null && filterWhereClause.length > 0) {
@@ -57,8 +57,8 @@ private[netezza] object NetezzaFilters {
   }
 
   /**
-   * Convert the given String into a quotes SQL string value.
-   */
+    * Convert the given String into a quotes SQL string value.
+    */
   private def quoteValue(value: Any): Any = value match {
     case stringValue: String => s"'${escapeQuotes(stringValue)}'"
     case tsValue: Timestamp => s"'${tsValue}'"
@@ -66,15 +66,15 @@ private[netezza] object NetezzaFilters {
   }
 
   /**
-   * Return a strings that escapes quote with another quote.
-   */
+    * Return a strings that escapes quote with another quote.
+    */
   private def escapeQuotes(value: String): String =
     if (value == null) null else StringUtils.replace(value, "'", "''")
 
   /**
-   * Turns a single Filter into a String representing a SQL expression.
-   * Returns null for an unhandled filter.
-   */
+    * Turns a single Filter into a String representing a SQL expression.
+    * Returns null for an unhandled filter.
+    */
   private def generateFilterExpr(f: Filter): String = f match {
     case EqualTo(attr, value) => s"$attr = ${quoteValue(value)}"
     case LessThan(attr, value) => s"$attr < ${quoteValue(value)}"

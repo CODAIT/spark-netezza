@@ -20,23 +20,21 @@ package com.ibm.spark.netezza
 import org.apache.commons.csv.{CSVParser, CSVFormat}
 
 /**
- * Class provides methods to parse the data written by the Netezza into
- * the remote client pipe. Format of the data is controlled by the external
- * table definition options.
- *
- * @author Suresh Thalamati
- */
-class NetezzaRecordParser(delimiter:Char, escapeChar:Char) {
+  * Class provides methods to parse the data written by the Netezza into
+  * the remote client pipe. Format of the data is controlled by the external
+  * table definition options.
+  */
+class NetezzaRecordParser(delimiter: Char, escapeChar: Char) {
 
   val csvFormat = CSVFormat.DEFAULT.withDelimiter(delimiter).withEscape(escapeChar)
 
   /**
-   * Parse the input String into column values.
-   *
-   * @param input string value of a row
-   * @return column values as array of string.
-   */
-  def parse(input:String):Array[String] = {
+    * Parse the input String into column values.
+    *
+    * @param input string value of a row
+    * @return column values as array of string.
+    */
+  def parse(input: String): Array[String] = {
     val parser = CSVParser.parse(input, csvFormat)
     val records = parser.getRecords()
     val row = records.isEmpty match {

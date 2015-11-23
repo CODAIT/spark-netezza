@@ -22,22 +22,20 @@ import java.text.SimpleDateFormat
 import org.apache.spark.sql.types._
 
 /**
- * Converts Netezza format data into Spark SQL row. This is mutable row type
- * to avoid creating too many object of this type for passing each row.
- *
- * @author Suresh Thalamati
- */
+  * Converts Netezza format data into Spark SQL row. This is mutable row type
+  * to avoid creating too many object of this type for passing each row.
+  */
 private class NetezzaRow(schema: StructType) extends Row {
 
   override def length: Int = schema.length
 
   override def get(i: Int): Any = getValue(i)
 
-  override def copy(): Row = {val row = new NetezzaRow(this.schema)
+  override def copy(): Row = {
+    val row = new NetezzaRow(this.schema)
     row.netezzaValues = this.netezzaValues.clone()
     row
   }
-
 
   val conversionFunctions: Array[String => Any] = schema.fields.map { field =>
     field.dataType match {
@@ -56,7 +54,6 @@ private class NetezzaRow(schema: StructType) extends Row {
     }
   }
 
-
   var netezzaValues: Array[String] = null
 
   def getValue(i: Int): Any = {
@@ -65,10 +62,10 @@ private class NetezzaRow(schema: StructType) extends Row {
   }
 
   /**
-   * Parse the input string specified in the Netezza format into Timestamp.
-   * TODO: SimpleDateFormat is not thread safe. Creating new object for each value for time being until we
-   * understand if this code called by called by multiple threads are not by Spark RDD.
-   */
+    * Parse the input string specified in the Netezza format into Timestamp.
+    * TODO: SimpleDateFormat is not thread safe. Creating new object for each value for time being
+    * until we understand if this code called by called by multiple threads are not by Spark RDD.
+    */
   def parseTimestamp(value: String): java.sql.Timestamp = {
     var pattern = "yyyy-MM-dd HH:mm" // length 16
     if (value.length() == 19) {
@@ -88,12 +85,12 @@ private class NetezzaRow(schema: StructType) extends Row {
   }
 
   /**
-   * Parse the date input String in the Netezza format into date.
-   *
-   * TODO: SimpleDateFormat is not thread safe. Creating new object for each value
-   * for time being until we understand if this code called by called by multiple
-   * threads are not by Spark RDD.
-   */
+    * Parse the date input String in the Netezza format into date.
+    *
+    * TODO: SimpleDateFormat is not thread safe. Creating new object for each value
+    * for time being until we understand if this code called by called by multiple
+    * threads are not by Spark RDD.
+    */
   def parseDate(value: String): java.sql.Date = {
     val df = new SimpleDateFormat("yyyy-MM-dd")
     val date = df.parse(value)
@@ -101,10 +98,9 @@ private class NetezzaRow(schema: StructType) extends Row {
   }
 
   /**
-   * Parse boolean string.
-   */
+    * Parse boolean string.
+    */
   def parseBoolean(value: String): Boolean = {
     if (value.equals("T")) true else false
   }
-
 }

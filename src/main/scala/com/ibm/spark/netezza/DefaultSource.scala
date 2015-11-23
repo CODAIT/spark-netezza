@@ -22,21 +22,19 @@ import org.apache.spark.sql.{SQLContext}
 import org.apache.spark.sql.sources.{DataSourceRegister, BaseRelation, RelationProvider}
 
 /**
- * Implements base relation for Netezza data source. This relation is used when user
- * specifies "com.ibm.spark.netezza' or 'netezza'  as data format for the data frame
- * reader or in the DDL operation with USING clause.
- *
- * Netezza data source implementations is based on in-built Spark SQL JDBC datasource.
- *
- * @author Suresh Thalamati
- */
+  * Implements base relation for Netezza data source. This relation is used when user
+  * specifies "com.ibm.spark.netezza' or 'netezza'  as data format for the data frame
+  * reader or in the DDL operation with USING clause.
+  *
+  * Netezza data source implementations is based on in-built Spark SQL JDBC datasource.
+  */
 class DefaultSource extends RelationProvider with DataSourceRegister {
 
   override def shortName(): String = "netezza"
 
   /**
-   * Returns a Netezza data source relation with the given parameters.
-   */
+    * Returns a Netezza data source relation with the given parameters.
+    */
   override def createRelation(
                                sqlContext: SQLContext,
                                parameters: Map[String, String]): BaseRelation = {
@@ -47,7 +45,7 @@ class DefaultSource extends RelationProvider with DataSourceRegister {
 
     val properties = new Properties() // Additional properties that we will pass to getConnection
     //parameters.foreach(kv => properties.setProperty(kv._1, kv._2))
-    parameters.foreach{case (k, v) => properties.setProperty(k, v)}
+    parameters.foreach { case (k, v) => properties.setProperty(k, v) }
 
     val parts = NetezzaInputFormat.getDataSlicePartition(
       NetezzaJdbcUtils.getConnector(url, properties)(), numPartitions.toInt)

@@ -26,12 +26,10 @@ import org.apache.spark.sql.types.StructType
 import org.apache.spark.sql.{Row, SQLContext}
 
 /**
- *
- * Netezza relation that fetches only required columns and pushing filters to Netezza data base.
- * Generates schema based on the input table data types in the Netezza database.
- *
- * @author Suresh Thalamati
- */
+  *
+  * Netezza relation that fetches only required columns and pushing filters to Netezza data base.
+  * Generates schema based on the input table data types in the Netezza database.
+  */
 private[netezza] case class NetezzaRelation(
     url: String,
     table: String,

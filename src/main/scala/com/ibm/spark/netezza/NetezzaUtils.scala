@@ -1,15 +1,11 @@
 package com.ibm.spark.netezza
 
 import java.io._
-import java.lang.String._
 import java.sql._
 import java.util._
 
 import org.slf4j.LoggerFactory
 
-/**
-* @author Xiu Guo
-*/
 object NetezzaUtils {
   private val log = LoggerFactory.getLogger(getClass)
 
@@ -21,7 +17,7 @@ object NetezzaUtils {
       String.valueOf(System.currentTimeMillis()))
 
     val pipeName: String = {
-      new String("slice-pipe" + java.util.UUID.randomUUID ().toString ())
+      new String("slice-pipe" + java.util.UUID.randomUUID().toString())
     }
 
     // created named pipe, check that the file exists
@@ -65,14 +61,14 @@ object NetezzaUtils {
   }
 
   /**
-   * Get the name and type of all the columns in the table. The type string
-   * has the precision and scale for the types that need it. For example:
-   * VARCHAR(255)
-   *
-   * @param tablename
-   * @param fieldNames
-   * @param conn
-   */
+    * Get the name and type of all the columns in the table. The type string
+    * has the precision and scale for the types that need it. For example:
+    * VARCHAR(255)
+    *
+    * @param tablename
+    * @param fieldNames
+    * @param conn
+    */
   @throws(classOf[SQLException])
   @throws(classOf[IOException])
   def getColumnTypes(tablename: String, fieldNames: Seq[String], conn: Connection): Map[String, String] = {
@@ -93,7 +89,6 @@ object NetezzaUtils {
     var colTypes: Map[String, String] = new HashMap[String, String]()
 
     try {
-
       stmt = conn.prepareStatement(query)
       results = stmt.executeQuery()
 
@@ -130,10 +125,9 @@ object NetezzaUtils {
   }
 
   /**
-   * Thread to run create external table
-   */
-  class StatementExecutorThread (conn: Connection, pstmt: PreparedStatement) extends Thread {
-
+    * Thread to run create external table
+    */
+  class StatementExecutorThread(conn: Connection, pstmt: PreparedStatement) extends Thread {
     var executionResult: Boolean = false
 
     var writePipe: File = null
@@ -213,4 +207,5 @@ object NetezzaUtils {
       }
     }
   }
+
 }

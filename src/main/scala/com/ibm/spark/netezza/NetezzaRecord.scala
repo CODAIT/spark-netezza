@@ -3,11 +3,9 @@ package com.ibm.spark.netezza
 import java.text.SimpleDateFormat
 
 /**
- * Netezza record holds one row from the netezza table. Provides methods to convert
- * from Strings into the data frame data type.
- *
- * @author Suresh Thalamati
- */
+  * Netezza record holds one row from the netezza table. Provides methods to convert
+  * from Strings into the data frame data type.
+  */
 class NetezzaRecord(row: Array[String]) {
 
   def getBytes(pos: Int) = {
@@ -65,7 +63,6 @@ class NetezzaRecord(row: Array[String]) {
     }
   }
 
-
   def getBoolean(pos: Int): Boolean = {
     if (row(pos) == null) {
       null.asInstanceOf[Boolean]
@@ -89,7 +86,6 @@ class NetezzaRecord(row: Array[String]) {
   def wasNull(pos: Int): Boolean = {
     row(pos) == null
   }
-
 
   // Suresh temp method for testing ..
   def getNetezzaValues(): Array[String] = {

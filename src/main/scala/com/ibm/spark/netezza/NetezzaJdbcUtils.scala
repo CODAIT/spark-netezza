@@ -8,22 +8,23 @@ import org.apache.spark.sql.sources.Filter
 import org.slf4j.LoggerFactory
 
 /**
- * Utility jdbc methods to communicate with Netezza. These methods are based on Spark SQL code,
- * and depends on the internal class DriverRegistry.
- */
-private[netezza] object  NetezzaJdbcUtils {
+  * Utility jdbc methods to communicate with Netezza. These methods are based on Spark SQL code,
+  * and depends on the internal class DriverRegistry.
+  */
+private[netezza] object NetezzaJdbcUtils {
 
   private val log = LoggerFactory.getLogger(getClass)
+
   /**
-   * Given  an url, return a function that loads the
-   * specified driver string then returns a connection to the JDBC url.
-   * getConnector is run on the driver code, while the function it returns
-   * is run on the executor.
-   *
-   * @param url - The JDBC url to connect to.
-   *
-   * @return A function that loads the driver and connects to the url.
-   */
+    * Given  an url, return a function that loads the
+    * specified driver string then returns a connection to the JDBC url.
+    * getConnector is run on the driver code, while the function it returns
+    * is run on the executor.
+    *
+    * @param url - The JDBC url to connect to.
+    *
+    * @return A function that loads the driver and connects to the url.
+    */
   def getConnector(url: String, properties: Properties): () => Connection = {
     () => {
       val driver = "org.netezza.Driver"
@@ -37,7 +38,7 @@ private[netezza] object  NetezzaJdbcUtils {
     }
   }
 
-  def quoteIdentifier(colName:String):String = {
+  def quoteIdentifier(colName: String): String = {
     s"""$colName"""
   }
 

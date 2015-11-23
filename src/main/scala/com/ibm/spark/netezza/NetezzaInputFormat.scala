@@ -22,22 +22,19 @@ import org.apache.spark.Partition
 import scala.collection.mutable.ArrayBuffer
 
 /**
- * Get information about data slices.
- *
- * @author Suresh Thalamati
- */
+  * Get information about data slices.
+  */
 private[netezza] object NetezzaInputFormat {
 
   def getParitionPredicate(start: Int, end: Int) = {
     s"DATASLICEID BETWEEN $start AND $end";
   }
 
-
   /**
-   * Get number of data slices configured in the database.
-   * @param conn connection to the database.
-   * @return number of of data slices
-   */
+    * Get number of data slices configured in the database.
+    * @param conn connection to the database.
+    * @return number of of data slices
+    */
   def getNumberDataSlices(conn: Connection): Integer = {
 
     //query to get maximum number of data slices in the database.
@@ -62,8 +59,8 @@ private[netezza] object NetezzaInputFormat {
   }
 
   /**
-   * Get partitions mapping to the data slices in the database,
-   */
+    * Get partitions mapping to the data slices in the database,
+    */
   def getDataSlicePartition(conn: Connection, numPartitions: Int): Array[Partition] = {
     val numberDataSlices = getNumberDataSlices(conn)
     if (numPartitions == 1 || numberDataSlices == 1) {
@@ -102,6 +99,5 @@ private[netezza] object NetezzaInputFormat {
       ans.toArray
     }
   }
-
 }
 

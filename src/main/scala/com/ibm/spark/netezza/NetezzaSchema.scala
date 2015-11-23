@@ -22,24 +22,24 @@ import java.util.Properties
 import org.apache.spark.sql.types._
 
 /**
- * Generates schema for the data source by mapping to Netezza jdbc type to Spark sql data types.
- * Spark SQL jdbc datasource mapping is modified to make Netezza specific.
- */
-private[netezza] object  NetezzaSchema {
+  * Generates schema for the data source by mapping to Netezza jdbc type to Spark sql data types.
+  * Spark SQL jdbc datasource mapping is modified to make Netezza specific.
+  */
+private[netezza] object NetezzaSchema {
 
   /**
-   *
-   * Returns spark sql type schema based for the given table.
-   *
-   * @param url  Connection url to the netezzza database.
-   * @param properties  connection properties.
-   * @param table The table name of the desired table.
-   * @return A StructType giving the table's spark sql schema.
-   * @throws SQLException if the table specification is garbage.
-   * @throws SQLException if the table contains an unsupported type.
-   */
-  def getSparkSqlSchema(url:String, properties: Properties, table: String): StructType = {
-    val conn:Connection =  NetezzaJdbcUtils.getConnector(url , properties)()
+    *
+    * Returns spark sql type schema based for the given table.
+    *
+    * @param url  Connection url to the netezzza database.
+    * @param properties  connection properties.
+    * @param table The table name of the desired table.
+    * @return A StructType giving the table's spark sql schema.
+    * @throws SQLException if the table specification is garbage.
+    * @throws SQLException if the table contains an unsupported type.
+    */
+  def getSparkSqlSchema(url: String, properties: Properties, table: String): StructType = {
+    val conn: Connection = NetezzaJdbcUtils.getConnector(url, properties)()
     try {
       val rs = conn.prepareStatement(s"SELECT * FROM $table WHERE 1=0").executeQuery()
       try {
@@ -65,18 +65,18 @@ private[netezza] object  NetezzaSchema {
       } finally {
         rs.close()
       }
-    }finally {
+    } finally {
       conn.close()
     }
   }
 
 
   /**
-   * Maps Netezaa JDBC type to a spark sql type.
-   *
-   * @param jdbcType - Jdbc type for the Netezza column
-   * @return The Spark SQL type corresponding to sqlType.
-   */
+    * Maps Netezaa JDBC type to a spark sql type.
+    *
+    * @param jdbcType - Jdbc type for the Netezza column
+    * @return The Spark SQL type corresponding to sqlType.
+    */
   private def getSparkSqlType(
                                jdbcType: Int,
                                precision: Int,
@@ -84,38 +84,46 @@ private[netezza] object  NetezzaSchema {
                                signed: Boolean): DataType = {
     val answer = jdbcType match {
       // scalastyle:off
-      case java.sql.Types.BIGINT        => if (signed) { LongType } else { DecimalType(20,0) }
-      case java.sql.Types.BINARY        => BinaryType
-      case java.sql.Types.BIT           => BooleanType
-      case java.sql.Types.BOOLEAN       => BooleanType
-      case java.sql.Types.CHAR          => StringType
-      case java.sql.Types.DATE          => DateType
+      case java.sql.Types.BIGINT => if (signed) {
+        LongType
+      } else {
+        DecimalType(20, 0)
+      }
+      case java.sql.Types.BINARY => BinaryType
+      case java.sql.Types.BIT => BooleanType
+      case java.sql.Types.BOOLEAN => BooleanType
+      case java.sql.Types.CHAR => StringType
+      case java.sql.Types.DATE => DateType
       case java.sql.Types.DECIMAL
         if precision != 0 || scale != 0 => DecimalType(precision, scale)
-      case java.sql.Types.DECIMAL       => DecimalType(38, 18) // Spark 1.5.0 default
-      case java.sql.Types.DOUBLE        => DoubleType
-      case java.sql.Types.FLOAT         => FloatType
-      case java.sql.Types.INTEGER       => if (signed) { IntegerType } else { LongType }
-      case java.sql.Types.JAVA_OBJECT   => null
-      case java.sql.Types.LONGNVARCHAR  => StringType
+      case java.sql.Types.DECIMAL => DecimalType(38, 18) // Spark 1.5.0 default
+      case java.sql.Types.DOUBLE => DoubleType
+      case java.sql.Types.FLOAT => FloatType
+      case java.sql.Types.INTEGER => if (signed) {
+        IntegerType
+      } else {
+        LongType
+      }
+      case java.sql.Types.JAVA_OBJECT => null
+      case java.sql.Types.LONGNVARCHAR => StringType
       case java.sql.Types.LONGVARBINARY => BinaryType
-      case java.sql.Types.LONGVARCHAR   => StringType
-      case java.sql.Types.NCHAR         => StringType
+      case java.sql.Types.LONGVARCHAR => StringType
+      case java.sql.Types.NCHAR => StringType
       case java.sql.Types.NUMERIC
         if precision != 0 || scale != 0 => DecimalType(precision, scale)
-      case java.sql.Types.NUMERIC       => DecimalType(38, 18) // Spark 1.5.0 default
-      case java.sql.Types.NVARCHAR      => StringType
-      case java.sql.Types.OTHER         => null
-      case java.sql.Types.REAL          => FloatType
-      case java.sql.Types.ROWID         => LongType
-      case java.sql.Types.SMALLINT      => IntegerType
-      case java.sql.Types.STRUCT        => StringType
-      case java.sql.Types.TIME          => TimestampType
-      case java.sql.Types.TIMESTAMP     => TimestampType
-      case java.sql.Types.TINYINT       => IntegerType
-      case java.sql.Types.VARBINARY     => BinaryType
-      case java.sql.Types.VARCHAR       => StringType
-      case _                            => null
+      case java.sql.Types.NUMERIC => DecimalType(38, 18) // Spark 1.5.0 default
+      case java.sql.Types.NVARCHAR => StringType
+      case java.sql.Types.OTHER => null
+      case java.sql.Types.REAL => FloatType
+      case java.sql.Types.ROWID => LongType
+      case java.sql.Types.SMALLINT => IntegerType
+      case java.sql.Types.STRUCT => StringType
+      case java.sql.Types.TIME => TimestampType
+      case java.sql.Types.TIMESTAMP => TimestampType
+      case java.sql.Types.TINYINT => IntegerType
+      case java.sql.Types.VARBINARY => BinaryType
+      case java.sql.Types.VARCHAR => StringType
+      case _ => null
       // scalastyle:on
     }
 
@@ -124,16 +132,15 @@ private[netezza] object  NetezzaSchema {
   }
 
   /**
-   * Prune all but the specified columns from the Spark SQL schema.
-   *
-   * @param schema - The Spark sql schema of the mappned netezza table
-   * @param columns - The list of desired columns
-   *
-   * @return A Spark sql schema corresponding to columns in the given order.
-   */
+    * Prune all but the specified columns from the Spark SQL schema.
+    *
+    * @param schema - The Spark sql schema of the mappned netezza table
+    * @param columns - The list of desired columns
+    *
+    * @return A Spark sql schema corresponding to columns in the given order.
+    */
   def pruneSchema(schema: StructType, columns: Array[String]): StructType = {
     val fieldMap = Map(schema.fields map { x => x.metadata.getString("name") -> x }: _*)
     new StructType(columns map { name => fieldMap(name) })
   }
-
 }
