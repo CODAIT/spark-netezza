@@ -77,11 +77,11 @@ private[netezza] object NetezzaSchema {
     * @param jdbcType - Jdbc type for the Netezza column
     * @return The Spark SQL type corresponding to sqlType.
     */
-  private def getSparkSqlType(
-                               jdbcType: Int,
-                               precision: Int,
-                               scale: Int,
-                               signed: Boolean): DataType = {
+  def getSparkSqlType(
+                       jdbcType: Int,
+                       precision: Int,
+                       scale: Int,
+                       signed: Boolean): DataType = {
     val answer = jdbcType match {
       // scalastyle:off
       case java.sql.Types.BIGINT => if (signed) {
