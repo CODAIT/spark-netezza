@@ -1,0 +1,9 @@
+# Mac
+.DS_Store
+
+# Intellij
+.idea/
+
+# Build artifacts
+target/
+project/target
