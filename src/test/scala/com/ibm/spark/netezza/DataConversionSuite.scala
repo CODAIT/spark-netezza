@@ -17,9 +17,9 @@
 
 package com.ibm.spark.netezza
 
-import org.scalatest.FunSuite
 import org.apache.spark.sql.Row
-import org.apache.spark.sql.types.{MetadataBuilder, StructField, BooleanType, StructType}
+import org.apache.spark.sql.types.{BooleanType, MetadataBuilder, StructField, StructType}
+import org.scalatest.FunSuite
 
 /**
  * Test converting from Netezza string data to Spark SQL Row. Netezza external table
@@ -36,11 +36,12 @@ class DataConversionSuite extends FunSuite {
    * @param cols  input column metadata
    * @return spark sqk sql schema corresponding to the input jdbc metadata.
    */
-  def buildSchema(cols: Array[Column]) = {
+  def buildSchema(cols: Array[Column]): StructType = {
     val fields = new Array[StructField](cols.length)
     var i = 0
     for (col <- cols) {
-      val columnType = NetezzaSchema.getSparkSqlType(col.jdbcType, col.precision, col.scale, col.signed)
+      val columnType = NetezzaSchema.getSparkSqlType(
+        col.jdbcType, col.precision, col.scale, col.signed)
       val metadata = new MetadataBuilder().putString("name", col.name)
       fields(i) = StructField(col.name, columnType, true, metadata.build())
       i = i + 1
@@ -57,13 +58,14 @@ class DataConversionSuite extends FunSuite {
     nzrow.netezzaValues = Array("mars")
     assert(row.get(0) == "mars")
 
-    //test null
+    // test null
     nzrow.netezzaValues = Array(null)
     assert(row.get(0) == null)
   }
 
   test("Test date and timestamp datatype.") {
-    val dbCols = Array(Column("col1", java.sql.Types.DATE), Column("col2", java.sql.Types.TIMESTAMP),
+    val dbCols = Array(
+      Column("col1", java.sql.Types.DATE), Column("col2", java.sql.Types.TIMESTAMP),
       Column("col3", java.sql.Types.TIMESTAMP), Column("col4", java.sql.Types.TIMESTAMP),
       Column("col5", java.sql.Types.TIMESTAMP), Column("col6", java.sql.Types.TIMESTAMP),
       Column("col7", java.sql.Types.TIMESTAMP))
@@ -115,7 +117,8 @@ class DataConversionSuite extends FunSuite {
     // cast it regular row, and call only spark sql row method for verification.
     val row: Row = nzrow
 
-    nzrow.netezzaValues = Array("10", "32767", "2147483647", "9223372036854775807", "-9223372036854775808")
+    nzrow.netezzaValues = Array(
+      "10", "32767", "2147483647", "9223372036854775807", "-9223372036854775808")
     assert(row.length == 5)
     assert(row.get(0) == 10)
     assert(row.get(1) == 32767)

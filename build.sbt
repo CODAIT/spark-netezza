@@ -1,6 +1,6 @@
 name := "spark-netezza"
 
-version := "0.1"
+version := "0.1.0"
 
 organization := "com.ibm"
 
@@ -19,5 +19,6 @@ licenses := Seq("Apache-2.0" -> url("http://opensource.org/licenses/Apache-2.0")
 sparkComponents := Seq("sql", "hive")
 
 libraryDependencies ++= Seq(
-  "org.apache.commons" % "commons-csv" % "1.2"
+  "org.apache.commons" % "commons-csv" % "1.2",
+  "org.scalatest" %% "scalatest" % "2.1.3" % "test"
 )
