@@ -1,3 +1,20 @@
+/**
+ * (C) Copyright IBM Corp. 2010, 2015
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
 package com.ibm.spark.netezza
 
 import java.io._
@@ -71,7 +88,8 @@ object NetezzaUtils {
     */
   @throws(classOf[SQLException])
   @throws(classOf[IOException])
-  def getColumnTypes(tablename: String, fieldNames: Seq[String], conn: Connection): Map[String, String] = {
+  def getColumnTypes(tablename: String, fieldNames: Seq[String],
+                     conn: Connection): Map[String, String] = {
 
     val columns: StringBuilder = new StringBuilder()
     var i = 0
@@ -112,10 +130,12 @@ object NetezzaUtils {
       }
     } finally {
       try {
-        if (results != null)
+        if (results != null) {
           results.close()
-        if (stmt != null)
+        }
+        if (stmt != null) {
           stmt.close()
+        }
       } catch {
         case _: SQLException =>
       }
@@ -131,20 +151,20 @@ object NetezzaUtils {
     var executionResult: Boolean = false
 
     var writePipe: File = null
-    //var readPipe: File = null
+    // var readPipe: File = null
     var receivedEarlyOut: Boolean = false
     var error: Boolean = false
     var e: Exception = null
 
-    def getExecutionResult = executionResult
+    def getExecutionResult: Boolean = executionResult
 
     def setWritePipe(writePipe: File): Unit = {
       this.writePipe = writePipe
     }
 
-    //def setReadPipe(readPipe: File): Unit = {
+    // def setReadPipe(readPipe: File): Unit = {
     //  this.readPipe = readPipe
-    //}
+    // }
 
     def setEarlyOut(): Unit = {
       receivedEarlyOut = true
@@ -155,9 +175,9 @@ object NetezzaUtils {
       this.e = e1
     }
 
-    //def getError(): Exception = e
+    // def getError(): Exception = e
 
-    //def isErrored(): Boolean = error
+    // def isErrored(): Boolean = error
 
     override def run(): Unit = {
       log.info("running create table...")
@@ -172,7 +192,8 @@ object NetezzaUtils {
           else {
             try conn.rollback()
             catch {
-              case _: Throwable => log.error("Error rolling back create external table: " + e.toString)
+              case _: Throwable => log.error(
+                                      "Error rolling back create external table: " + e.toString)
             }
             setError(e)
           }
@@ -194,10 +215,10 @@ object NetezzaUtils {
                 case e1: Throwable => e1.printStackTrace()
               }
             }
-            //if (readPipe != null) try new FileOutputStream(readPipe).close()
-            //catch {
+            // if (readPipe != null) try new FileOutputStream(readPipe).close()
+            // catch {
             //  case e1: Throwable => e1.printStackTrace()
-            //}
+            // }
             throw e
           }
         }

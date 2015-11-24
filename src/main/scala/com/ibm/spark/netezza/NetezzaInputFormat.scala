@@ -1,18 +1,18 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
+/**
+ * (C) Copyright IBM Corp. 2010, 2015
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.ibm.spark.netezza
@@ -26,7 +26,7 @@ import scala.collection.mutable.ArrayBuffer
   */
 private[netezza] object NetezzaInputFormat {
 
-  def getParitionPredicate(start: Int, end: Int) = {
+  def getParitionPredicate(start: Int, end: Int): String = {
     s"DATASLICEID BETWEEN $start AND $end";
   }
 
@@ -37,7 +37,7 @@ private[netezza] object NetezzaInputFormat {
     */
   def getNumberDataSlices(conn: Connection): Integer = {
 
-    //query to get maximum number of data slices in the database.
+    // query to get maximum number of data slices in the database.
     val query = "select max(ds_id) from  _v_dslice"
     val stmt = conn.prepareStatement(query)
     try {
@@ -46,7 +46,7 @@ private[netezza] object NetezzaInputFormat {
 
         val numberDataSlices = if (rs.next) rs.getInt(1) else 0
         if (numberDataSlices == 0) {
-          //there should always be some data slices with netezza
+          // there should always be some data slices with netezza
           throw new Exception("No data slice ids returned.");
         }
         return numberDataSlices
@@ -68,9 +68,9 @@ private[netezza] object NetezzaInputFormat {
     } else {
       val ans = new ArrayBuffer[Partition]()
       var partitionIndex = 0
-      //if there are more partions than the data slice, assign one data slice per partition
+      // if there are more partions than the data slice, assign one data slice per partition
       if (numberDataSlices <= numPartitions) {
-        //one data slice per mapper
+        // one data slice per mapper
         for (sliceId <- 1 to numberDataSlices) {
           ans += NetezzaPartition(getParitionPredicate(sliceId, sliceId), partitionIndex)
           partitionIndex = partitionIndex + 1

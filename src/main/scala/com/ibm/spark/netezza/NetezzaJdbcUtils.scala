@@ -42,7 +42,8 @@ private[netezza] object NetezzaJdbcUtils {
     s"""$colName"""
   }
 
-  def getCountWithFilter(url: String, properties: Properties, table: String, filters: Array[Filter]): Long = {
+  def getCountWithFilter(url: String, properties: Properties, table: String,
+                         filters: Array[Filter]): Long = {
     val whereClause = NetezzaFilters.getFilterClause(filters)
     val countQuery = s"SELECT count(*) FROM $table $whereClause"
     log.info(countQuery)
