@@ -88,8 +88,10 @@ object NetezzaUtils {
     */
   @throws(classOf[SQLException])
   @throws(classOf[IOException])
-  def getColumnTypes(tablename: String, fieldNames: Seq[String],
-                     conn: Connection): Map[String, String] = {
+  def getColumnTypes(
+      tablename: String,
+      fieldNames: Seq[String],
+      conn: Connection): Map[String, String] = {
 
     val columns: StringBuilder = new StringBuilder()
     var i = 0
@@ -228,5 +230,4 @@ object NetezzaUtils {
       }
     }
   }
-
 }

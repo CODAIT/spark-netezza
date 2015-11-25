@@ -14,6 +14,7 @@
  * limitations under the License.
  *
  */
+
 package com.ibm.spark.netezza
 
 import org.apache.commons.csv.{CSVParser, CSVFormat}
