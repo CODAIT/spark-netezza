@@ -104,13 +104,18 @@ The artifacts will be generated to:
 
     spark-netezza/target/scala-{binary.version}/
 
+To run the tests, in the root directory run:
+
+    sbt test
+
 ### Scala 2.11
 To build against scala 2.11, use '++' option with desired version number, for example:
 
     sbt ++2.11.7 assembly
+    sbt ++2.11.7 test
 
 #### Version Cross Build
-This produces artifacts for both scala 2.10 and 2.11:
+To produce artifacts for both scala 2.10 and 2.11:
 
 Start SBT:
 
@@ -119,6 +124,7 @@ Start SBT:
 Run in the SBT shell:
 
      + package
+     + test
 
 #### Using sbt-spark-package Plugin
 spark-netezza connector supports sbt-spark-package plugin, to publish to local ivy repository, run:
