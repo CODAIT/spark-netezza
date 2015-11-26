@@ -2,6 +2,14 @@
 
 A connector to load data into Spark SQL DataFrames from IBM Netezza database.
 
+## Binary download:
+
+You can download spark-netezza assembly jars from here:
+
+Spark Version | Release # | Binary Location
+--- | --- | ---
+1.5.2 | v0.1.0 | [spark-netezza-assembly-0.1.0.jar] (https://github.com/SparkTC/spark-netezza/releases/download/v0.1.0/spark-netezza-assembly-0.1.0.jar)
+
 ## Usage
 
 ### Specifying Dependencies
@@ -26,7 +34,7 @@ import org.apache.spark.sql._
 val sc = // existing SparkContext
 val sqlContext = new SQLContext(sc)
 
-val opts = Map("url" -> jdbc:netezza://netezzahost:5480/database",
+val opts = Map("url" -> "jdbc:netezza://netezzahost:5480/database",
         "user" -> "username",
         "password" -> "password",
         "dbtable" -> "tablename",
@@ -85,6 +93,18 @@ OPTIONS (
   dbtable 'tablename'
 );
 ```
+
+## Configuration Overview
+
+Configuration can be passed on DataFrame using option:
+
+Name | Description
+--- |:---
+url|The url to connect with JDBC driver.
+user|Username to connect to the database.
+password|Password to connect to the database.
+dbtable|The table in the database to load.
+numPartitions|Number of partitions to specify to parallely execute data movement.
 
 ## Building From Source
 
