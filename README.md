@@ -1,6 +1,5 @@
 # `spark-netezza`
-
-A connector to load data into Spark SQL DataFrames from IBM Netezza database.
+A data source library to load data into Spark SQL DataFrames from IBM® Netezza® database. This data source library is implemented using Netezza external table mechanism to transfer data from the Netezza host system to the Spark system optimally.
 
 ## Binary download:
 
@@ -114,11 +113,11 @@ spark-netezza build supports Scala 2.10 by default, if Scala 2.11 artifact is ne
 #### Building General Artifacts
 To generate regular binary, in the root directory run:
 
-    sbt package
+    build/sbt package
 
 To generate assembly jar, in the root directory run:
 
-    sbt assembly
+    build/sbt assembly
 
 The artifacts will be generated to:
 
@@ -126,20 +125,20 @@ The artifacts will be generated to:
 
 To run the tests, in the root directory run:
 
-    sbt test
+    build/sbt test
 
 ### Scala 2.11
 To build against scala 2.11, use '++' option with desired version number, for example:
 
-    sbt ++2.11.7 assembly
-    sbt ++2.11.7 test
+    build/sbt ++2.11.7 assembly
+    build/sbt ++2.11.7 test
 
 #### Version Cross Build
 To produce artifacts for both scala 2.10 and 2.11:
 
 Start SBT:
 
-     sbt
+     build/sbt
 
 Run in the SBT shell:
 
@@ -149,4 +148,4 @@ Run in the SBT shell:
 #### Using sbt-spark-package Plugin
 spark-netezza connector supports sbt-spark-package plugin, to publish to local ivy repository, run:
 
-    sbt spPublishLocal
+    build/sbt spPublishLocal
