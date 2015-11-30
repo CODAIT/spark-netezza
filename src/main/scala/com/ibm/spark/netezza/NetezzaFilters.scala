@@ -80,8 +80,8 @@ private[netezza] object NetezzaFilters {
     case GreaterThan(attr, value) => s"$attr > ${quoteValue(value)}"
     case LessThanOrEqual(attr, value) => s"$attr <= ${quoteValue(value)}"
     case GreaterThanOrEqual(attr, value) => s"$attr >= ${quoteValue(value)}"
-    case IsNull(attr) => s"is null $attr"
-    case IsNotNull(attr) => s"is not null $attr"
+    case IsNull(attr) => s"$attr is null"
+    case IsNotNull(attr) => s"$attr is not null"
     case _ => null
   }
 }

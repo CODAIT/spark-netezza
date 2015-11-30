@@ -69,14 +69,12 @@ private[netezza] class NetezzaRDD(
       context.addTaskCompletionListener { context => close() }
       val part = thePart.asInstanceOf[NetezzaPartition]
       val conn = getConnection()
-      val reader = new NetezzaDataReader(conn, table, columns, filters, part)
+      val reader = new NetezzaDataReader(conn, table, columns, filters, part, schema)
       val netezzaRow = new NetezzaRow(schema)
 
       def getNext(): Row = {
         if (reader.hasNext) {
-          val record = reader.next()
-          netezzaRow.netezzaValues = record.getNetezzaValues()
-          netezzaRow
+          reader.next()
         } else {
           finished = true
           null.asInstanceOf[Row]

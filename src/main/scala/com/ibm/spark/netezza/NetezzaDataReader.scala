@@ -21,6 +21,7 @@ import java.io.{BufferedReader, FileInputStream, InputStreamReader}
 import java.sql.{Connection, PreparedStatement}
 
 import org.apache.spark.sql.sources.Filter
+import org.apache.spark.sql.types.StructType
 import org.slf4j.LoggerFactory
 
 /**
@@ -30,7 +31,8 @@ class NetezzaDataReader(conn: Connection,
                         table: String,
                         columns: Array[String],
                         filters: Array[Filter],
-                        partition: NetezzaPartition) extends Iterator[NetezzaRecord] {
+                        partition: NetezzaPartition,
+                        schema: StructType) extends Iterator[NetezzaRow] {
 
   private val log = LoggerFactory.getLogger(getClass)
 
@@ -44,8 +46,7 @@ class NetezzaDataReader(conn: Connection,
   var fis: FileInputStream = null
   var isr: InputStreamReader = null
   var nextLine: String = null;
-  var nextRecord: NetezzaRecord = null
-  var recordParser: NetezzaRecordParser = null
+  var nextRecord: NetezzaRow = null
 
   val escapeChar: Char = '\\';
   val delimiter: Char = '\001';
@@ -85,39 +86,33 @@ class NetezzaDataReader(conn: Connection,
   isr = new InputStreamReader(fis)
   input = new BufferedReader(isr)
 
-  recordParser = new NetezzaRecordParser(delimiter, escapeChar)
+  val recordParser = new NetezzaRecordParser(delimiter, escapeChar, schema)
 
+  var firstCall = true
 
   /**
     * Returns true if there are record in the pipe, otherwise false.
     */
   override def hasNext: Boolean = {
-    val record: Option[NetezzaRecord] = getNextRecord()
-    record match {
-      case Some(_) =>
-        nextRecord = record.get
-        true
-      case None => false
+    if (firstCall) {
+      nextLine = input.readLine()
+      firstCall = false
     }
-  }
-
-  override def next(): NetezzaRecord = {
-    nextRecord
-  }
-
-
-  private def getNextRecord(): Option[NetezzaRecord] = {
-    nextLine = input.readLine()
-
     // the end of the data when row is null
     if (nextLine == null) {
-      close()
-      None
+      false
     } else {
-      val row: Array[String] = recordParser.parse(nextLine)
-      Some(new NetezzaRecord(row))
+      true
     }
   }
+
+  override def next(): NetezzaRow = {
+    val row = recordParser.parse(nextLine)
+    // read the next line in advance to check if there is more data.
+    nextLine = input.readLine()
+    row
+  }
+
 
   def close(): Unit = {
     if (!closed) {

@@ -18,40 +18,39 @@
 package com.ibm.spark.netezza
 
 import org.apache.commons.csv.{CSVParser, CSVFormat}
+import org.apache.spark.sql.types.StructType
+
+import scala.collection.mutable
 
 /**
   * Class provides methods to parse the data written by the Netezza into
   * the remote client pipe. Format of the data is controlled by the external
   * table definition options.
   */
-class NetezzaRecordParser(delimiter: Char, escapeChar: Char) {
+class NetezzaRecordParser(delimiter: Char, escapeChar: Char, schema: StructType) {
 
   val csvFormat = CSVFormat.DEFAULT.withDelimiter(delimiter).withEscape(escapeChar)
+  val row: NetezzaRow = new NetezzaRow(schema)
 
   /**
     * Parse the input String into column values.
     *
     * @param input string value of a row
-    * @return column values as array of string.
+    * @return row object that contains the current values..
     */
-  def parse(input: String): Array[String] = {
+  def parse(input: String): NetezzaRow = {
     val parser = CSVParser.parse(input, csvFormat)
     val records = parser.getRecords()
-    val row = records.isEmpty match {
+    records.isEmpty match {
       case true => {
-        val nullRow = new Array[String](1)
-        nullRow(0) = null
-        nullRow
+        row.setValue(0, null)
       }
       case false => {
         // Parsing is one row at a tine , only one record expected.
         val record = records.get(0)
-        // convert to array.
-        val nonNullRow = new Array[String](record.size())
         for (i: Int <- 0 until record.size()) {
-          nonNullRow(i) = if (record.get(i).isEmpty) null else record.get(i)
+          row.setValue(i, if (record.get(i).isEmpty) null else record.get(i))
         }
-        nonNullRow
       }
     }
     row

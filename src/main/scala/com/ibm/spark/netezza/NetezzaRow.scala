@@ -25,7 +25,7 @@ import org.apache.spark.sql.types._
   * Converts Netezza format data into Spark SQL row. This is mutable row type
   * to avoid creating too many object of this type for passing each row.
   */
-private class NetezzaRow(schema: StructType) extends Row {
+private[netezza] class NetezzaRow(schema: StructType) extends Row {
 
   override def length: Int = schema.length
 
@@ -54,7 +54,11 @@ private class NetezzaRow(schema: StructType) extends Row {
     }
   }
 
-  var netezzaValues: Array[String] = null
+  private var netezzaValues: Array[String] = Array.fill(schema.length){null}
+
+  def setValue(i: Int, value: String): Unit = {
+    netezzaValues(i) = value
+  }
 
   def getValue(i: Int): Any = {
     val data = netezzaValues(i)

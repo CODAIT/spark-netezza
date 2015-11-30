@@ -18,36 +18,14 @@
 package com.ibm.spark.netezza
 
 import org.apache.spark.sql.Row
-import org.apache.spark.sql.types.{BooleanType, MetadataBuilder, StructField, StructType}
-import org.scalatest.FunSuite
+import org.apache.spark.sql.types.{BooleanType}
 
 /**
  * Test converting from Netezza string data to Spark SQL Row. Netezza external table
  * mechanism writes the data in particular format specified in the external
  * table definition.
  */
-class DataConversionSuite extends FunSuite {
-
-  case class Column(name: String, jdbcType: Int,
-                    precision: Int = 0, scale: Int = 0, signed: Boolean = false)
-
-  /**
-   * Utility routine to build spark sqk schema from jdbc meta data for tesing.
-   * @param cols  input column metadata
-   * @return spark sqk sql schema corresponding to the input jdbc metadata.
-   */
-  def buildSchema(cols: Array[Column]): StructType = {
-    val fields = new Array[StructField](cols.length)
-    var i = 0
-    for (col <- cols) {
-      val columnType = NetezzaSchema.getSparkSqlType(
-        col.jdbcType, col.precision, col.scale, col.signed)
-      val metadata = new MetadataBuilder().putString("name", col.name)
-      fields(i) = StructField(col.name, columnType, true, metadata.build())
-      i = i + 1
-    }
-    new StructType(fields)
-  }
+class DataConversionSuite extends NetezzaBaseSuite {
 
   test("Test varchar data type.") {
     val dbCols = Array(Column("col1", java.sql.Types.VARCHAR))
@@ -55,11 +33,11 @@ class DataConversionSuite extends FunSuite {
     val nzrow: NetezzaRow = new NetezzaRow(schema)
     val row: Row = nzrow
 
-    nzrow.netezzaValues = Array("mars")
+    nzrow.setValue(0, "mars")
     assert(row.get(0) == "mars")
 
     // test null
-    nzrow.netezzaValues = Array(null)
+    nzrow.setValue(0, null)
     assert(row.get(0) == null)
   }
 
@@ -72,8 +50,12 @@ class DataConversionSuite extends FunSuite {
 
     val schema = buildSchema(dbCols)
     val nzrow: NetezzaRow = new NetezzaRow(schema)
-    nzrow.netezzaValues = Array("1947-08-15", "2000-12-24 01:02", "1901-12-24 01:02:03",
-      "1850-01-24 01:02:03.1", "2020-11-24 01:02:03.12", "2015-11-24 01:02:03.123", null)
+    var i = 0
+    for (value <- Array("1947-08-15", "2000-12-24 01:02", "1901-12-24 01:02:03",
+      "1850-01-24 01:02:03.1", "2020-11-24 01:02:03.12", "2015-11-24 01:02:03.123", null)) {
+      nzrow.setValue(i, value)
+      i = i + 1
+    }
 
     // cast it regular row, and call only spark sql row method for verification.
     val row: Row = nzrow
@@ -95,7 +77,7 @@ class DataConversionSuite extends FunSuite {
     val row: Row = nzrow
     assert(row.length == 1)
     for (value <- List("T", "F", null)) {
-      nzrow.netezzaValues = Array(value)
+      nzrow.setValue(0, value)
       val expValue = value match {
         case "T" => true
         case "F" => false
@@ -117,8 +99,12 @@ class DataConversionSuite extends FunSuite {
     // cast it regular row, and call only spark sql row method for verification.
     val row: Row = nzrow
 
-    nzrow.netezzaValues = Array(
-      "10", "32767", "2147483647", "9223372036854775807", "-9223372036854775808")
+    var i = 0
+    for (value <-
+         Array("10", "32767", "2147483647", "9223372036854775807", "-9223372036854775808")) {
+      nzrow.setValue(i, value)
+      i = i + 1
+    }
     assert(row.length == 5)
     assert(row.get(0) == 10)
     assert(row.get(1) == 32767)
@@ -152,8 +138,12 @@ class DataConversionSuite extends FunSuite {
     val nzrow: NetezzaRow = new NetezzaRow(schema)
     // cast it regular row, and call only spark sql row method for verification.
     val row: Row = nzrow
+    var i = 0
+    for (value <- Array("1.2", "3.3", "3434.443", "99.1234", "5.3256789", "3456.22")){
+      nzrow.setValue(i , value)
+      i = i + 1
+    }
 
-    nzrow.netezzaValues = Array("1.2", "3.3", "3434.443", "99.1234", "5.3256789", "3456.22")
     assert(row.length == 6)
     assert(row.get(0) == 1.2f)
     assert(row.get(1) == 3.3d)
