@@ -43,13 +43,14 @@ class NetezzaRecordParser(delimiter: Char, escapeChar: Char, schema: StructType)
     val records = parser.getRecords()
     records.isEmpty match {
       case true => {
-        row.setValue(0, null)
+        // null value for single column select.
+        row.setValue(0, "")
       }
       case false => {
         // Parsing is one row at a tine , only one record expected.
         val record = records.get(0)
         for (i: Int <- 0 until record.size()) {
-          row.setValue(i, if (record.get(i).isEmpty) null else record.get(i))
+          row.setValue(i, record.get(i))
         }
       }
     }

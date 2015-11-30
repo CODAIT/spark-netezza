@@ -48,7 +48,7 @@ private[netezza] class NetezzaRow(schema: StructType) extends Row {
       case IntegerType => (value: String) => value.toInt
       case LongType => (value: String) => value.toLong
       case ShortType => (value: String) => value.toShort
-      case StringType => (value: String) => value
+      case StringType => (value: String) => parseString(value)
       case TimestampType => (value: String) => parseTimestamp(value)
       case _ => throw new IllegalArgumentException(s"Unsupported type: $field.datatype")
     }
@@ -57,12 +57,15 @@ private[netezza] class NetezzaRow(schema: StructType) extends Row {
   private var netezzaValues: Array[String] = Array.fill(schema.length){null}
 
   def setValue(i: Int, value: String): Unit = {
-    netezzaValues(i) = value
+    netezzaValues(i) = schema.fields(i).dataType match {
+      case StringType => value // empty string is not null for strings.
+      case _ => if (value != null && value.isEmpty) null else value
+    }
   }
 
   def getValue(i: Int): Any = {
     val data = netezzaValues(i)
-    if (data == null || data.isEmpty) null else conversionFunctions(i)(data)
+    if (data == null) null else conversionFunctions(i)(data)
   }
 
   /**
@@ -106,5 +109,13 @@ private[netezza] class NetezzaRow(schema: StructType) extends Row {
     */
   def parseBoolean(value: String): Boolean = {
     if (value.equals("T")) true else false
+  }
+
+  /**
+   * Parse string. Null values are written as special pattern using
+   * NullValue 'null' opton in the external table definition.
+   */
+  def parseString(value: String): String = {
+    if (value.equals("null")) null else value
   }
 }
