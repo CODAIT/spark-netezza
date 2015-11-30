@@ -25,8 +25,13 @@ import org.apache.spark.sql.types.StructType
 import org.slf4j.LoggerFactory
 
 /**
-  * Creates reader for the given partitions.
-  */
+ * Creates reader for the given partitions. Reader fetches the data for the Netezza source table
+ * by creating external table to tranfer from Netezza host system to a remote spark client using
+ * named pipes.
+ *
+ * Executes the external table statement in separate thread to allow reading of data in parallel
+ * from the named pipe by the RDD iterator.
+ */
 class NetezzaDataReader(conn: Connection,
                         table: String,
                         columns: Array[String],
@@ -36,71 +41,93 @@ class NetezzaDataReader(conn: Connection,
 
   private val log = LoggerFactory.getLogger(getClass)
 
-  val pipe = NetezzaUtils.createPipe();
+  val escapeChar: Char = '\\';
+  val delimiter: Char = '\001';
+  val recordParser = new NetezzaRecordParser(delimiter, escapeChar, schema)
 
   // thread for creating table
   var execThread: NetezzaUtils.StatementExecutorThread = null
   var closed: Boolean = false
 
+  var pipe: java.io.File = null
   var input: BufferedReader = null
   var fis: FileInputStream = null
   var isr: InputStreamReader = null
-  var nextLine: String = null;
+  var nextLine: String = null
   var nextRecord: NetezzaRow = null
-
-  val escapeChar: Char = '\\';
-  val delimiter: Char = '\001';
-
-  val baseQuery = {
-    val whereClause = NetezzaFilters.getWhereClause(filters, partition)
-    val colStrBuilder = new StringBuilder()
-    if (columns.length > 0) {
-      colStrBuilder.append(columns(0))
-      columns.drop(1).foreach(col => colStrBuilder.append(",").append(col))
-    } else {
-      colStrBuilder.append("1")
-    }
-    s"SELECT $colStrBuilder FROM $table $whereClause"
-  }
-  // build external table initialized by base query
-  var query: StringBuilder = new StringBuilder()
-  query.append("CREATE EXTERNAL TABLE '" + pipe + "'")
-  query.append(" USING (delimiter '" + delimiter + "' ")
-  query.append(" escapeChar '" + escapeChar + "' ")
-
-  query.append(" REMOTESOURCE 'JDBC' NullValue 'null' BoolStyle 'T_F'")
-  query.append(")")
-  query.append(" AS " + baseQuery.toString() + " ")
-
-  log.info("Query: " + query.toString())
-
-  // start the thread that will populate the pipe
-  val stmt: PreparedStatement = conn.prepareStatement(query.toString())
-  execThread = new NetezzaUtils.StatementExecutorThread(conn, stmt);
-  execThread.setWritePipe(pipe);
-  log.info("start thread to create table..");
-  execThread.start();
-
-  // set up the input stream
-  fis = new FileInputStream(pipe)
-  isr = new InputStreamReader(fis)
-  input = new BufferedReader(isr)
-
-  val recordParser = new NetezzaRecordParser(delimiter, escapeChar, schema)
-
   var firstCall = true
+  var stmt: PreparedStatement = null
+
+  /**
+   * Start the external table executor that unloads the data. It is necessary to do
+   * the setup in separate method instead of class constructor to allow caller to
+   * execute close() call in error cases, otherwise job can hang forever.
+   */
+  def startExternalTableDataUnload() {
+    pipe = NetezzaUtils.createPipe();
+    val query = buildExternalTableQuery(pipe.toString)
+    // prepare the statement before starting the  thread to catch any errors early.
+    stmt = conn.prepareStatement(query)
+    // start the thread that will populate the pipe
+    execThread = new NetezzaUtils.StatementExecutorThread(conn, stmt);
+    execThread.setWritePipe(pipe);
+    log.info("start thread to create external table..");
+    execThread.start();
+
+    // set up the input stream
+    fis = new FileInputStream(pipe)
+    isr = new InputStreamReader(fis)
+    input = new BufferedReader(isr)
+
+  }
+
+
+  /**
+   * Build externa table query for the specified options.
+   *
+   * @param pipeId id of the names pipe the Netezza system should write the data.
+   * @return External table query to unload the data.
+   */
+  def buildExternalTableQuery(pipeId: String): String = {
+
+    val baseQuery = {
+      val whereClause = NetezzaFilters.getWhereClause(filters, partition)
+      val colStrBuilder = new StringBuilder()
+      if (columns.length > 0) {
+        colStrBuilder.append(columns(0))
+        columns.drop(1).foreach(col => colStrBuilder.append(",").append(col))
+      } else {
+        colStrBuilder.append("1")
+      }
+      s"SELECT $colStrBuilder FROM $table $whereClause"
+    }
+    // build external table initialized by base query
+    val query: StringBuilder = new StringBuilder()
+    query.append("CREATE EXTERNAL TABLE '" + pipeId + "'")
+    query.append(" USING (delimiter '" + delimiter + "' ")
+    query.append(" escapeChar '" + escapeChar + "' ")
+
+    query.append(" REMOTESOURCE 'JDBC' NullValue 'null' BoolStyle 'T_F'")
+    query.append(")")
+    query.append(" AS " + baseQuery.toString() + " ")
+
+    log.info("External Table Query: " + query)
+    query.toString()
+  }
 
   /**
     * Returns true if there are record in the pipe, otherwise false.
     */
   override def hasNext: Boolean = {
-    if (firstCall) {
-      nextLine = input.readLine()
-      firstCall = false
-    }
     // the end of the data when row is null
     if (nextLine == null) {
-      false
+      if (firstCall) {
+        nextLine = input.readLine()
+        firstCall = false
+        if (nextLine != null) true else false
+      } else {
+        false
+      }
     } else {
       true
     }
@@ -126,7 +153,7 @@ class NetezzaDataReader(conn: Connection,
   }
 
   private def closeInputStream() {
-    log.info("close in stream ");
+    log.info("close input stream ");
     if (fis != null) {
       fis.close();
       fis = null;

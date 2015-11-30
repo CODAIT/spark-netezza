@@ -70,7 +70,7 @@ private[netezza] class NetezzaRDD(
       val part = thePart.asInstanceOf[NetezzaPartition]
       val conn = getConnection()
       val reader = new NetezzaDataReader(conn, table, columns, filters, part, schema)
-      val netezzaRow = new NetezzaRow(schema)
+      reader.startExternalTableDataUnload()
 
       def getNext(): Row = {
         if (reader.hasNext) {
