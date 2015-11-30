@@ -17,8 +17,8 @@
 # limitations under the License.
 #
 
-echo -e "q\n" | sbt scalastyle > scalastyle.txt
-echo -e "q\n" | sbt test:scalastyle >> scalastyle.txt
+echo -e "q\n" | build/sbt scalastyle > scalastyle.txt
+echo -e "q\n" | build/sbt test:scalastyle >> scalastyle.txt
 
 ERRORS=$(cat scalastyle.txt | awk '{if($1~/error/)print}')
 rm scalastyle.txt
