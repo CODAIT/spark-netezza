@@ -18,7 +18,7 @@
 package com.ibm.spark.netezza
 
 import org.apache.spark.sql.Row
-import org.apache.spark.sql.types.{BooleanType}
+import org.apache.spark.sql.types.BooleanType
 
 /**
  * Test converting from Netezza string data to Spark SQL Row. Netezza external table
