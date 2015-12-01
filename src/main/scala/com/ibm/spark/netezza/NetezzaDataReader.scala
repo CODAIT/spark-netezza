@@ -69,8 +69,7 @@ class NetezzaDataReader(conn: Connection,
     // prepare the statement before starting the  thread to catch any errors early.
     stmt = conn.prepareStatement(query)
     // start the thread that will populate the pipe
-    execThread = new NetezzaUtils.StatementExecutorThread(conn, stmt);
-    execThread.setWritePipe(pipe);
+    execThread = new NetezzaUtils.StatementExecutorThread(conn, stmt, pipe);
     log.info("start thread to create external table..");
     execThread.start();
 
@@ -122,7 +121,7 @@ class NetezzaDataReader(conn: Connection,
     // the end of the data when row is null
     if (nextLine == null) {
       if (firstCall) {
-        nextLine = input.readLine()
+        nextLine = getNextLine()
         firstCall = false
         if (nextLine != null) true else false
       } else {
@@ -136,14 +135,27 @@ class NetezzaDataReader(conn: Connection,
   override def next(): NetezzaRow = {
     val row = recordParser.parse(nextLine)
     // read the next line in advance to check if there is more data.
-    nextLine = input.readLine()
+    nextLine = getNextLine()
     row
   }
 
+  /**
+   * Returns next line in the pipe. If an exception occured during execution, it
+   * is thrown to call to propagate to the user..
+   */
+  private def getNextLine(): String = {
+    if (execThread.hasExceptionrOccured) {
+      close()
+      throw new RuntimeException(
+        "Error creating external table pipe:" + execThread.exception.toString)
+    } else {
+      input.readLine()
+    }
+  }
 
   def close(): Unit = {
     if (!closed) {
-      execThread.setEarlyOut()
+      execThread.receivedEarlyOut = !execThread.hasExceptionrOccured
       stmt.close()
       closePipe()
       closeInputStream()
