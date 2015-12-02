@@ -18,63 +18,49 @@
 package com.ibm.spark.netezza
 
 import java.io._
+import java.nio.file.Files
 import java.sql._
 import java.util._
 
 import org.slf4j.LoggerFactory
 
+/**
+ * Helper class to create names pipe, and Thread to execute external table statement.
+ */
 object NetezzaUtils {
   private val log = LoggerFactory.getLogger(getClass)
 
+  /**
+   * Creates a named pipe on the local node used to transfer the data between
+   * Netezza host , and the this spark data source.
+   *
+   * @return file handle to the named pipe.
+   */
+  @throws(classOf[IOException])
   def createPipe(): File = {
 
-    var pExitCode: Int = 0
+    val pipeName = "spark-netezza-" + java.util.UUID.randomUUID().toString()
+    // Using the java default temporary directory to create the names pipes.
+    val tempFile: File = Files.createTempFile(pipeName, "_pipe").toFile
+    tempFile.delete()
+    val pipe: File = new File(tempFile.getParent(), pipeName)
 
-    val pipeDir = createTempDir("read_pipe" + java.util.UUID.randomUUID().toString(),
-      String.valueOf(System.currentTimeMillis()))
-
-    val pipeName: String = {
-      new String("slice-pipe" + java.util.UUID.randomUUID().toString())
-    }
-
-    // created named pipe, check that the file exists
-    val pipe: File = new File(pipeDir + "/" + pipeName)
-
-    log.debug("Checking existence of pipe " + pipeName)
-    var exists = pipe.exists()
-
-    if (!exists) {
-      log.debug("Creating pipe...")
-      // attempt to create it
-      val r: Runtime = Runtime.getRuntime()
-      try {
-        val createPipeProcess: Process = r.exec("mkfifo " + pipe)
-        pExitCode = createPipeProcess.waitFor()
-        log.debug("mkfifo exit code: " + Integer.toString(pExitCode));
-      } catch {
-        case e: IOException => log.warn("Unable to create pipe = '" + pipeName + "' "
-          + e.getMessage())
-        case e: InterruptedException => log.warn("Unable to create pipe = '" + pipeName + "' "
-          + e.getMessage())
+    // attempt to create it
+    val r: Runtime = Runtime.getRuntime()
+    try {
+      val createPipeProcess: Process = r.exec("mkfifo " + pipe + " -m 0600")
+      val pExitCode = createPipeProcess.waitFor()
+      log.debug("mkfifo exit status code: " + Integer.toString(pExitCode));
+    } catch {
+      case e @ (_ : InterruptedException | _ : IOException) => {
+        log.error("Unable to create named pipe:" + pipe , e)
+        throw new IOException("Unable to create named pipe:" + pipe , e)
       }
     }
-
-    exists = pipe.exists()
-
-    if (!exists) {
-      log.warn("Pipe does not exist and attempt to create it failed.")
+    if (!pipe.exists()) {
+      throw new IOException("Unable to create named pipe:" + pipe)
     }
-    return pipe
-  }
-
-  @throws(classOf[IOException])
-  def createTempDir(prefix: String, suffix: String): File = {
-
-    val f: File = File.createTempFile(prefix, suffix) // use default unix temp dir
-    f.deleteOnExit()
-    f.delete()
-    if (!f.mkdir()) throw new IOException("Could not create local temp directory " + f)
-    else f
+    pipe
   }
 
   /**
