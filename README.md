@@ -7,7 +7,7 @@ You can download spark-netezza assembly jars from here:
 
 Spark Version | Release # | Binary Location
 --- | --- | ---
-1.5.2 | v0.1.0 | [spark-netezza-assembly-0.1.0.jar] (https://github.com/SparkTC/spark-netezza/releases/download/v0.1.0/spark-netezza-assembly-0.1.0.jar)
+1.5.2 | v0.1.1 | [spark-netezza-assembly-0.1.1.jar] (https://github.com/SparkTC/spark-netezza/releases/download/v0.1.1/spark-netezza-assembly-0.1.1.jar)
 
 ## Usage
 
