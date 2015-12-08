@@ -4,7 +4,7 @@ version := "0.1.1"
 
 organization := "com.ibm"
 
-spName := "ibm/spark-netezza"
+spName := "SparkTC/spark-netezza"
 
 scalaVersion := "2.10.5"
 
@@ -22,3 +22,9 @@ libraryDependencies ++= Seq(
   "org.apache.commons" % "commons-csv" % "1.2",
   "org.scalatest" %% "scalatest" % "2.1.3" % "test"
 )
+
+spAppendScalaVersion := true
+
+spIncludeMaven := true
+
+credentials += Credentials(Path.userHome / ".ivy2" / ".sbtcredentials")
