@@ -119,7 +119,7 @@ object NetezzaUtils {
           // forever. Open and close the pipe to avoid the reader blocking forever.
           if (writePipe != null) {
             try {
-              val fos: FileOutputStream = new FileOutputStream(writePipe);
+              val fos: FileOutputStream = new FileOutputStream(writePipe)
               fos.close();
             } catch {
               case ioe: IOException => log.warn("Failed to close the pipe:" + writePipe)
