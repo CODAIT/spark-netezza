@@ -2,7 +2,7 @@ name := "spark-netezza"
 
 version := "0.1.1"
 
-organization := "com.ibm"
+organization := "com.ibm.SparkTC"
 
 spName := "SparkTC/spark-netezza"
 
