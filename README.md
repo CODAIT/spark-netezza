@@ -11,15 +11,13 @@ Spark Version | Release # | Binary Location
 
 ## Usage
 
-### Specifying Dependencies
+### Specify Package
 
-You can use spark-shell, spark-sql, pyspark or spark-submit based on your scenario to invoke spark-netezza connector. Dependency on netezza jdbc driver needs to be provided. For example, for spark-shell:
+Spark-netezza connector is a registered package on [spark-packages site](http://spark-packages.org/), so it supports command line option `--packages` to resolve maven dependencies. You can use spark-shell, spark-sql, pyspark or spark-submit based on your scenario to invoke spark-netezza connector. Dependency on netezza jdbc driver needs to be provided.
 
-    spark-shell --jars /path/to/spark-netezza-assembly-0.1.jar --driver-class-path /path/to/nzjdbc.jar
+For example, for spark-shell:
 
-If you prefer not to use the fat jar, an extra dependency flag needs to be set:
-
-    --packages org.apache.commons:commons-csv:1.2
+    spark-shell --packages com.ibm.SparkTC:spark-netezza_2.10:0.1.1 --driver-class-path /path/to/nzjdbc.jar
 
 ### Data Sources API
 
