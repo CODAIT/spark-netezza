@@ -43,13 +43,6 @@ publishTo := {
 
 pomExtra := (
   <url>https://github.com/SparkTC/spark-netezza</url>
-  <licenses>
-    <license>
-      <name>Apache License, Version 2.0</name>
-      <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
-      <distribution>repo</distribution>
-    </license>
-  </licenses>
   <scm>
     <url>git@github.com:SparkTC/spark-netezza.git</url>
     <connection>scm:git:git@github.com:SparkTC/spark-netezza.git</connection>
