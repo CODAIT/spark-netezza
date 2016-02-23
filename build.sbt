@@ -20,8 +20,17 @@ sparkComponents := Seq("sql", "hive")
 
 libraryDependencies ++= Seq(
   "org.apache.commons" % "commons-csv" % "1.2",
-  "org.scalatest" %% "scalatest" % "2.1.3" % "test"
+  "org.scalatest" %% "scalatest" % "2.1.3",
+  "com.typesafe" % "config" % "1.2.1"
 )
+
+//Developers only: for integration test, obtain netezza jdbc jar locally and uncomment below line
+//unmanagedJars in Compile += file("/pathTo/nzjdbc.jar")
+
+lazy val root =
+    Project("root", file("."))
+      .configs( IntegrationTest )
+      .settings( Defaults.itSettings : _*)
 
 spAppendScalaVersion := true
 
