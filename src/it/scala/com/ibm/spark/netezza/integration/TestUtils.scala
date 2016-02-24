@@ -17,6 +17,8 @@
 
 package com.ibm.spark.netezza.integration
 
+import java.sql.Timestamp
+
 import org.apache.spark.sql.Row
 
 object TestUtils {
@@ -24,6 +26,7 @@ object TestUtils {
     * Expected output corresponding to the output of integration test.
     */
   val expectedData: Seq[Row] = Seq(
-      Row(false, 2147483647, -128, 32767, 2147483648L, 3.4, 5.6, "a"),
-      Row(List.fill(8)(null): _*))
+      Row(false, 2147483647, -128, 32767, 2147483648L, 3.4, 5.6, "a", "rAnD0m 5Tring",
+        new Timestamp(0)),
+      Row(List.fill(10)(null): _*))
 }

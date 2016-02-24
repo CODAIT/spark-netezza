@@ -45,7 +45,9 @@ class IntegrationTestSuite extends IntegrationSuiteBase with QueryTest{
              |bigInt int8,
              |floatCol float,
              |doubleCol double,
-             |charCol char
+             |charCol char,
+             |varcharCol2 varchar(6400),
+             |tsCol timestamp
              |)
       """.stripMargin
         )
@@ -54,9 +56,10 @@ class IntegrationTestSuite extends IntegrationSuiteBase with QueryTest{
       conn.createStatement().executeUpdate(
         s"""
            |insert into $tableName values
-           |(false, 2147483647, -128, 32767, 2147483648, 3.4, 5.6, 'a');
+           |(false, 2147483647, -128, 32767, 2147483648, 3.4, 5.6, 'a', 'rAnD0m 5Tring',
+           |'1969-12-31 16:00:00.0');
            |insert into $tableName values
-           |(null, null, null, null, null, null, null, null)
+           |(null, null, null, null, null, null, null, null, null, null)
            """.stripMargin
       )
       // scalastyle:on
