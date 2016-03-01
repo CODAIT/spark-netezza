@@ -5,6 +5,7 @@
 .classpath
 .project
 .settings/
+target/
 
 # Intellij
 .idea/
@@ -19,7 +20,7 @@
 .history
 .lib/
 dist/*
-target/
+build/
 lib_managed/
 src_managed/
 project/boot/
