@@ -13,10 +13,9 @@
 ## limitations under the License.
 ##
 
-language: java
+language: scala
 
-jdk:
-  - oraclejdk8
+scala:
+  - 2.10.4
+  - 2.11.2
 
-script:
-  - sbt clean package
