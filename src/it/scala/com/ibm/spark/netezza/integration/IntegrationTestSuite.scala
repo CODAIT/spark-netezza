@@ -17,11 +17,12 @@
 
 package com.ibm.spark.netezza.integration
 
-import org.apache.spark.sql.DataFrame
+import java.sql.Timestamp
+
+import org.apache.spark.sql.{Row, DataFrame}
 import org.netezza.error.NzSQLException
 
-class IntegrationTestSuite extends IntegrationSuiteBase with QueryTest{
-  var testDf: DataFrame = _
+class IntegrationTestSuite extends IntegrationSuiteBase with QueryTest {
 
   override def beforeAll(): Unit = {
     super.beforeAll()
@@ -67,13 +68,6 @@ class IntegrationTestSuite extends IntegrationSuiteBase with QueryTest{
 
     dropTable(testTable)
     createTable(testTable)
-
-    val opts = Map("url" -> testURL,
-      "user" -> user,
-      "password" -> password,
-      "dbtable" -> testTable,
-      "numPartitions" -> Integer.toString(numPartitions))
-    testDf = sqlContext.read.format("com.ibm.spark.netezza").options(opts).load()
   }
 
   override def afterAll(): Unit = {
@@ -83,10 +77,75 @@ class IntegrationTestSuite extends IntegrationSuiteBase with QueryTest{
     }
   }
 
+  private def defaultOpts() = {
+    Map("url" -> testURL,
+      "user" -> user,
+      "password" -> password,
+      "dbtable" -> testTable,
+      "numPartitions" -> Integer.toString(numPartitions))
+  }
+
   test("Test load netezza to a DataFrame") {
-    checkAnswer(testDf, TestUtils.expectedData) match {
+    val testDf = sqlContext.read.format("com.ibm.spark.netezza").options(defaultOpts).load()
+    verifyAnswer(testDf, TestUtils.expectedData)
+  }
+
+  test("Test mixed case table identifiers") {
+    val tabName = "\"mixCaseTab\""
+    withTable(tabName) {
+      executeJdbcStmt(s"create table $tabName(id int , name varchar(10))")
+      executeJdbcStmt(s"insert into $tabName values(1 , 'John Doe')")
+      val opts = defaultOpts + ("dbTable" -> tabName)
+      val testDf = sqlContext.read.format("com.ibm.spark.netezza").options(opts).load()
+      val expected = Seq(Row(1, "John Doe"))
+      verifyAnswer(testDf, expected)
+    }
+  }
+
+  test("Test mixed case column names") {
+    val opts = defaultOpts + ("dbTable" -> "\"mxCaseColsTab\"")
+    val tabName = "mixCaseColTab"
+    withTable(tabName) {
+      executeJdbcStmt(s"""create table $tabName(id int , "Name" varchar(10))""")
+      executeJdbcStmt(s"insert into $tabName values(1 , 'John Doe')")
+      val opts = defaultOpts + ("dbTable" -> tabName)
+      val testDf = sqlContext.read.format("com.ibm.spark.netezza").options(opts).load()
+      assert(testDf.schema.fieldNames(1) == "Name")
+      val expected = Seq(Row(1, "John Doe"))
+      verifyAnswer(testDf, expected)
+    }
+  }
+
+
+  /**
+    * Executes the data frame and makes sure the answer matches the expected result.
+    *
+    * @param df             the [[DataFrame]] to be executed
+    * @param expectedAnswer the expected result in a [[Seq]] of [[Row]]s.
+    */
+  private def verifyAnswer(df: => DataFrame, expectedAnswer: Seq[Row]): Unit = {
+    checkAnswer(df, expectedAnswer) match {
       case Some(errorMessage) => fail(errorMessage)
       case None =>
+    }
+  }
+
+
+  /**
+    * Execute a JDBC statement.
+    */
+  private def executeJdbcStmt(stmt: String) {
+    conn.createStatement().executeUpdate(stmt)
+  }
+
+  /**
+    * Drops table `tableName` after calling `f`.
+    */
+  private def withTable(tableNames: String*)(f: => Unit): Unit = {
+    try f finally {
+      tableNames.foreach { name =>
+        executeJdbcStmt(s"DROP TABLE $name")
+      }
     }
   }
 }

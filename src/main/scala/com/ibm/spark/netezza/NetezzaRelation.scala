@@ -47,12 +47,14 @@ private[netezza] case class NetezzaRelation(
       emptyRowRDD(filters)
     }
     else {
+      // quote the column names to match Netezza table column names in case sensitive manner.
+      val quotedColumns = requiredColumns.map(colName => s""""$colName"""")
       new NetezzaRDD(
         sqlContext.sparkContext,
         NetezzaJdbcUtils.getConnector(url, properties),
         NetezzaSchema.pruneSchema(schema, requiredColumns),
         table,
-        requiredColumns,
+        quotedColumns,
         filters,
         parts,
         properties)
