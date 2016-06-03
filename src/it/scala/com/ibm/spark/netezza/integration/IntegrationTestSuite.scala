@@ -116,6 +116,78 @@ class IntegrationTestSuite extends IntegrationSuiteBase with QueryTest {
     }
   }
 
+  test("Test multiple rows with simple string data.") {
+    val opts = defaultOpts + ("dbTable" -> "\"mxCaseColsTab\"")
+    val tabName = "mixCaseColTab"
+    withTable(tabName) {
+      executeJdbcStmt(s"""create table $tabName(id int , "Name" varchar(20))""")
+      val opts = defaultOpts + ("dbTable" -> tabName)
+      executeJdbcStmt(
+        s"""insert into $tabName values(1 , 'John Doe')""".stripMargin)
+      executeJdbcStmt(
+        s"""insert into $tabName values(2 , 'Mike Doe')""".stripMargin)
+      executeJdbcStmt(
+        s"""insert into $tabName values(3 , 'Robert Doe')""".stripMargin)
+      executeJdbcStmt(
+        s"""insert into $tabName values(4, 'Kathy Doe')""".stripMargin)
+      executeJdbcStmt(
+        s"""insert into $tabName values(5, 'Samantha\tDoe')""".stripMargin)
+      executeJdbcStmt(
+        s"""insert into $tabName values(6, 'Dennis Doe')""".stripMargin)
+
+      val testDf = sqlContext.read.format("com.ibm.spark.netezza").options(opts).load()
+      assert(testDf.schema.fieldNames(1) == "Name")
+      val expected = Seq(
+        Row(1, "John Doe"),
+        Row(2, "Mike Doe"),
+        Row(3, "Robert Doe"),
+        Row(4, "Kathy Doe"),
+        Row(5, "Samantha\tDoe"),
+        Row(6, "Dennis Doe"))
+      verifyAnswer(testDf, expected)
+    }
+  }
+
+  test("Test control character in the string data.") {
+    val opts = defaultOpts + ("dbTable" -> "\"mxCaseColsTab\"")
+    val tabName = "mixCaseColTab"
+    withTable(tabName) {
+      executeJdbcStmt(s"""create table $tabName(id int , "Name" varchar(20))""")
+      val opts = defaultOpts + ("dbTable" -> tabName)
+      executeJdbcStmt(
+        s"""insert into $tabName values(1 , 'John\nDoe1')""".stripMargin)
+      executeJdbcStmt(
+        s"""insert into $tabName values(2 , 'Mike\rDoe2')""".stripMargin)
+      executeJdbcStmt(
+        s"""insert into $tabName values(3 , 'Robert\n\rDoe3')""".stripMargin)
+      executeJdbcStmt(
+        s"""insert into $tabName values(4, 'Kathy\r\nDoe4')""".stripMargin)
+      executeJdbcStmt(
+        s"""insert into $tabName values(5, 'Samantha\u001Doe5')""".stripMargin)
+      executeJdbcStmt(
+        s"""insert into $tabName values(6, 'Dennis\n \t \r\n Doe6')""".stripMargin)
+      executeJdbcStmt(
+        s"""insert into $tabName values(7, 'Thomas\\Do\\\\e7')""".stripMargin)
+      executeJdbcStmt(
+        s"""insert into $tabName values(8, 'Dilip"Biswal8')""".stripMargin)
+      executeJdbcStmt(
+        s"""insert into $tabName values(9, 'Xiao''Li9')""".stripMargin)
+
+      val testDf = sqlContext.read.format("com.ibm.spark.netezza").options(opts).load()
+      assert(testDf.schema.fieldNames(1) == "Name")
+      val expected = Seq(
+        Row(1, "John\nDoe1"),
+        Row(2, "Mike\rDoe2"),
+        Row(3, "Robert\n\rDoe3"),
+        Row(4, "Kathy\r\nDoe4"),
+        Row(5, "Samantha\u001Doe5"),
+        Row(6, "Dennis\n \t \r\n Doe6"),
+        Row(7, "Thomas\\Do\\\\e7"),
+        Row(8, "Dilip\"Biswal8"),
+        Row(9, "Xiao'Li9"))
+      verifyAnswer(testDf, expected)
+    }
+  }
 
   /**
     * Executes the data frame and makes sure the answer matches the expected result.

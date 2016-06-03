@@ -32,6 +32,7 @@ trait IntegrationSuiteBase extends FunSuite with BeforeAndAfterAll{
   protected val prop = new java.util.Properties
 
   // Configurable vals
+  protected var configFile = "application"
   protected var testURL: String = _
   protected var testTable: String = _
   protected var user: String = _
@@ -45,7 +46,7 @@ trait IntegrationSuiteBase extends FunSuite with BeforeAndAfterAll{
     sc = new SparkContext("local[*]", "IntegrationTest")
     sqlContext = new SQLContext(sc)
 
-    val conf = ConfigFactory.load
+    val conf = ConfigFactory.load(configFile)
     testURL = conf.getString("test.integration.dbURL")
     testTable = conf.getString("test.integration.table")
     user = conf.getString("test.integration.user")

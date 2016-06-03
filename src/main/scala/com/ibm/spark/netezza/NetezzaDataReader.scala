@@ -54,6 +54,8 @@ class NetezzaDataReader(conn: Connection,
   var fis: FileInputStream = null
   var isr: InputStreamReader = null
   var nextLine: String = null
+  var skipLF = false
+  val sb = new StringBuilder(80)
   var nextRecord: NetezzaRow = null
   var firstCall = true
   var stmt: PreparedStatement = null
@@ -77,7 +79,6 @@ class NetezzaDataReader(conn: Connection,
     fis = new FileInputStream(pipe)
     isr = new InputStreamReader(fis)
     input = new BufferedReader(isr)
-
   }
 
 
@@ -149,7 +150,53 @@ class NetezzaDataReader(conn: Connection,
       throw new RuntimeException(
         "Error creating external table pipe:" + execThread.exception.toString)
     } else {
-      input.readLine()
+      escapedReadLine()
+    }
+  }
+
+  /**
+    * Reads a line (CR, LF, CRLF are recognized as new line) of data from the input stream after
+    * skipping escaped characters including new line characters in the data. EscapeChar option is
+    * set by default on the external table created by this data source. The character immediately
+    * following the '\'value is escaped. The only supported escape char value is '\'.
+    */
+  private def escapedReadLine(): String = {
+    sb.clear()
+    var prevChar = -1
+    var eol = false
+    var c = input.read()
+    if (skipLF) {
+      if (c == '\n') {
+        c = input.read()
+      }
+      skipLF = false
+    }
+    // keep the code in the loop simple.
+    while (c != -1 && !eol) {
+      if (c == '\r' || c == '\n') {
+        if (prevChar == '\\') {
+          // escaped new line char include it in the returned string
+          sb.append(c.toChar)
+        } else {
+          eol = true
+          if (c == '\r') {
+            skipLF = true;
+          }
+        }
+      } else {
+        sb.append(c.toChar)
+      }
+      if (!eol) {
+        prevChar = c
+        c = input.read()
+      }
+    }
+
+    if (sb.length > 0) {
+      sb.toString()
+    } else {
+      // end of stream
+      null
     }
   }
 
