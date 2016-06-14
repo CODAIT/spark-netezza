@@ -1,11 +1,11 @@
 # `spark-netezza`
-A data source library to load data into Spark SQL DataFrames from IBM® Netezza® database. This data source library is implemented using Netezza external table mechanism to transfer data from the Netezza host system to the Spark system optimally.
+A data source library to load data into Apache Spark using SQL DataFrames from IBM® Netezza® database. This data source library is implemented using Netezza external table mechanism to transfer data from the Netezza host system to the Apache Spark system optimally.
 
 ## Binary download:
 
 You can download spark-netezza assembly jars from here:
 
-Spark Version | Release # | Binary Location
+Apache Spark Version | Release # | Binary Location
 --- | --- | ---
 1.5.2+ | v0.1.1 | [spark-netezza-assembly-0.1.1.jar] (https://github.com/SparkTC/spark-netezza/releases/download/v0.1.1/spark-netezza-assembly-0.1.1.jar)
 
@@ -21,7 +21,7 @@ For example, for spark-shell:
 
 ### Data Sources API
 
-You can use spark-netezza connector via the Spark Data Sources API in Scala, Java, Python or SQL, as follows:
+You can use spark-netezza connector via the Apache Spark Data Sources API in Scala, Java, Python or SQL, as follows:
 
 #### Scala
 
