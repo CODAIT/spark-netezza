@@ -1,9 +1,9 @@
-# `spark-netezza`
+# `Netezza Connector for Apache Spark`
 A data source library to load data into Apache Spark using SQL DataFrames from IBM® Netezza® database. This data source library is implemented using Netezza external table mechanism to transfer data from the Netezza host system to the Apache Spark system optimally.
 
 ## Binary download:
 
-You can download spark-netezza assembly jars from here:
+You can download the `Netezza Connector for Apache Spark` assembly jars from here:
 
 Apache Spark Version | Release # | Binary Location
 --- | --- | ---
