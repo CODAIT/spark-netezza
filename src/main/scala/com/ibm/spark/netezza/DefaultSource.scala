@@ -39,15 +39,39 @@ class DefaultSource extends RelationProvider with DataSourceRegister {
                                sqlContext: SQLContext,
                                parameters: Map[String, String]): BaseRelation = {
     val url = parameters.getOrElse("url", sys.error("Option 'Netezza database url' not specified"))
-    val table = parameters.getOrElse("dbtable", sys.error("Option 'dbtable' not specified"))
+    val (table, isQuery) = parameters.get("dbtable").map(table => (table, false)).orElse {
+      parameters.get("query")
+        .map(q => (s"($q) as src", true))
+        .orElse(sys.error("Option 'dbtable/query' should be specified."))
+    }.get
+
     // TODO: Have to set it to the system default.
-    val numPartitions = parameters.getOrElse("numPartitions", "4")
+    // For query default is 1, when fetching from a table defauilt is 4. Data slice ca
+    // can be used for partitioning when table is specified.
+    val numPartitions = parameters.getOrElse("numPartitions", if (isQuery) "1" else "4").toInt
+
+    val partitionCol = parameters.get("partitioncol")
+    val lowerBound = parameters.get("lowerbound")
+    val upperBound = parameters.get("upperbound")
 
     val properties = new Properties() // Additional properties that we will pass to getConnection
     parameters.foreach { case (k, v) => properties.setProperty(k, v) }
 
-    val parts = NetezzaInputFormat.getDataSlicePartition(
-      NetezzaJdbcUtils.getConnector(url, properties)(), numPartitions.toInt)
-    NetezzaRelation(url, table, parts, properties, numPartitions.toInt)(sqlContext)
+    val conn = NetezzaJdbcUtils.getConnector(url, properties)()
+    val parts = try {
+      if (partitionCol.isDefined || isQuery) {
+        if (isQuery && numPartitions > 1 && !partitionCol.isDefined) {
+          throw new IllegalArgumentException("Partition column should be specified or" +
+            " number of partition should be set to 1 with the query option.")
+        }
+        val partnInfo = PartitioningInfo(partitionCol, lowerBound, upperBound, numPartitions)
+        NetezzaInputFormat.getColumnPartitions(conn, table, partnInfo)
+      } else {
+        // Partitions based on the data slices.
+        NetezzaInputFormat.getDataSlicePartition(conn, numPartitions)
+      }
+    } finally { conn.close() }
+
+    NetezzaRelation(url, table, parts, properties, numPartitions)(sqlContext)
   }
 }

@@ -39,7 +39,6 @@ private[netezza] object NetezzaJdbcUtils {
     * is run on the executor.
     *
     * @param url - The JDBC url to connect to.
-    *
     * @return A function that loads the driver and connects to the url.
     */
   def getConnector(url: String, properties: Properties): () => Connection = {
@@ -82,5 +81,63 @@ private[netezza] object NetezzaJdbcUtils {
       conn().close()
     }
     count
+  }
+
+  object minMax extends Enumeration {
+    val Min, Max = Value
+  }
+
+  /**
+    * Get Partition column boundary values for the specified table/ derived table query
+    * from the Netezza database. If user specified the boundary values , this method will
+    * returns them instead of querying the Netezza server. Allowing user to specify helps if
+    * the derived table query is complex that contains joins.
+    */
+  def getPartitionColumnBoundaryValues(
+    conn: Connection,
+    table: String,
+    partitioningInfo: PartitioningInfo
+    ): (Long, Long) = {
+
+    val (requireMinValue, requireMaxValue) =
+      (partitioningInfo.lowerBound, partitioningInfo.upperBound) match {
+        case (Some(lower), Some(upper)) => (false, false)
+        case (Some(lower), None) => (false, true)
+        case (None, Some(upper)) => (true, false)
+        case (None, None) => (true, true)
+      }
+
+    val partitionCol = partitioningInfo.column.get
+    val (minMaxClause, noCols) = (requireMinValue, requireMaxValue) match {
+      case (true, true) => (s"min($partitionCol), max($partitionCol)", 2)
+      case (true, false) => (s"min($partitionCol)", 1)
+      case (false, true) => (s"max($partitionCol)", 1)
+      case (false, false) =>
+        return (partitioningInfo.lowerBound.get.toLong, partitioningInfo.upperBound.get.toLong)
+    }
+
+    val minMaxQuery = s"SELECT $minMaxClause FROM $table"
+    log.info(minMaxQuery)
+    var count: Long = 0
+    try {
+      val results = conn.prepareStatement(minMaxQuery).executeQuery()
+      if (results.next()) {
+        if (noCols == 1) {
+          val value = results.getLong(1)
+          if (requireMinValue) {
+            (results.getLong(1), partitioningInfo.upperBound.get.toLong)
+          } else {
+            (partitioningInfo.lowerBound.get.toLong, value)
+          }
+        } else {
+          (results.getLong(1), results.getLong(2))
+        }
+      }
+      else {
+        throw new RuntimeException("Could not fetch min/max values from Netezza")
+      }
+    } finally {
+      conn.close()
+    }
   }
 }

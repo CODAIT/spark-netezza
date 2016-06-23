@@ -21,11 +21,11 @@ import java.sql.Connection
 
 import com.ibm.spark.netezza.NetezzaJdbcUtils
 import com.typesafe.config.ConfigFactory
-import org.apache.spark.SparkContext
-import org.apache.spark.sql.SQLContext
+import org.apache.spark.{SparkConf, SparkContext}
+import org.apache.spark.sql.{Row, DataFrame, SQLContext}
 import org.scalatest.{BeforeAndAfterAll, FunSuite}
 
-trait IntegrationSuiteBase extends FunSuite with BeforeAndAfterAll{
+trait IntegrationSuiteBase extends FunSuite with BeforeAndAfterAll with QueryTest{
   protected var sc: SparkContext = _
   protected var sqlContext: SQLContext = _
   protected var conn: Connection = _
@@ -43,7 +43,7 @@ trait IntegrationSuiteBase extends FunSuite with BeforeAndAfterAll{
   override def beforeAll(): Unit = {
     super.beforeAll()
 
-    sc = new SparkContext("local[*]", "IntegrationTest")
+    sc = new SparkContext("local[*]", "IntegrationTest", new SparkConf())
     sqlContext = new SQLContext(sc)
 
     val conf = ConfigFactory.load(configFile)
@@ -65,6 +65,38 @@ trait IntegrationSuiteBase extends FunSuite with BeforeAndAfterAll{
     finally {
       conn.close()
       super.afterAll()
+    }
+  }
+
+  /**
+    * Executes the data frame and makes sure the answer matches the expected result.
+    *
+    * @param df             the [[DataFrame]] to be executed
+    * @param expectedAnswer the expected result in a [[Seq]] of [[Row]]s.
+    */
+  def verifyAnswer(df: => DataFrame, expectedAnswer: Seq[Row]): Unit = {
+    checkAnswer(df, expectedAnswer) match {
+      case Some(errorMessage) => fail(errorMessage)
+      case None =>
+    }
+  }
+
+
+  /**
+    * Execute a JDBC statement.
+    */
+  def executeJdbcStmt(stmt: String) {
+    conn.createStatement().executeUpdate(stmt)
+  }
+
+  /**
+    * Drops table `tableName` after calling `f`.
+    */
+  def withTable(tableNames: String*)(f: => Unit): Unit = {
+    try f finally {
+      tableNames.foreach { name =>
+        executeJdbcStmt(s"DROP TABLE $name")
+      }
     }
   }
 }

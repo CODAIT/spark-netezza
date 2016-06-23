@@ -35,7 +35,7 @@ private[netezza] object NetezzaFilters {
   def getWhereClause(filters: Array[Filter], part: NetezzaPartition): String = {
     val filterWhereClause = getFilterClause(filters)
     if (part.whereClause != null && filterWhereClause.length > 0) {
-      filterWhereClause + " AND " + part.whereClause
+      filterWhereClause + " AND " + s"(${part.whereClause})"
     } else if (part.whereClause != null) {
       "WHERE " + part.whereClause
     } else {

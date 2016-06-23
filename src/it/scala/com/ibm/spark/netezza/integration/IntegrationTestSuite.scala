@@ -22,7 +22,7 @@ import java.sql.Timestamp
 import org.apache.spark.sql.{Row, DataFrame}
 import org.netezza.error.NzSQLException
 
-class IntegrationTestSuite extends IntegrationSuiteBase with QueryTest {
+class IntegrationTestSuite extends IntegrationSuiteBase {
 
   override def beforeAll(): Unit = {
     super.beforeAll()
@@ -189,35 +189,4 @@ class IntegrationTestSuite extends IntegrationSuiteBase with QueryTest {
     }
   }
 
-  /**
-    * Executes the data frame and makes sure the answer matches the expected result.
-    *
-    * @param df             the [[DataFrame]] to be executed
-    * @param expectedAnswer the expected result in a [[Seq]] of [[Row]]s.
-    */
-  private def verifyAnswer(df: => DataFrame, expectedAnswer: Seq[Row]): Unit = {
-    checkAnswer(df, expectedAnswer) match {
-      case Some(errorMessage) => fail(errorMessage)
-      case None =>
-    }
-  }
-
-
-  /**
-    * Execute a JDBC statement.
-    */
-  private def executeJdbcStmt(stmt: String) {
-    conn.createStatement().executeUpdate(stmt)
-  }
-
-  /**
-    * Drops table `tableName` after calling `f`.
-    */
-  private def withTable(tableNames: String*)(f: => Unit): Unit = {
-    try f finally {
-      tableNames.foreach { name =>
-        executeJdbcStmt(s"DROP TABLE $name")
-      }
-    }
-  }
 }
