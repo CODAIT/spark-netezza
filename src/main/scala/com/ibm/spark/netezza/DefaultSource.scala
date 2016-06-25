@@ -62,7 +62,7 @@ class DefaultSource extends RelationProvider with DataSourceRegister {
       if (partitionCol.isDefined || isQuery) {
         if (isQuery && numPartitions > 1 && !partitionCol.isDefined) {
           throw new IllegalArgumentException("Partition column should be specified or" +
-            " number of partition should be set to 1 with the query option.")
+            " number of partitions should be set to 1 with the query option.")
         }
         val partnInfo = PartitioningInfo(partitionCol, lowerBound, upperBound, numPartitions)
         NetezzaInputFormat.getColumnPartitions(conn, table, partnInfo)

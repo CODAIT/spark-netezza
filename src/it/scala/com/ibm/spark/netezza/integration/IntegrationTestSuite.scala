@@ -189,4 +189,57 @@ class IntegrationTestSuite extends IntegrationSuiteBase {
     }
   }
 
+  test("Test escape char in the string data.") {
+    val opts = defaultOpts + ("dbTable" -> "\"mxCaseColsTab\"")
+    val tabName = "mixCaseColTab"
+    withTable(tabName) {
+      executeJdbcStmt(s"""create table $tabName(id int , "Name" varchar(20))""")
+      val opts = defaultOpts + ("dbTable" -> tabName)
+      executeJdbcStmt(
+        s"""insert into $tabName values(1 , 'John\\Doe1')""".stripMargin)
+      executeJdbcStmt(
+        s"""insert into $tabName values(2 , '\\Mike Doe2')""".stripMargin)
+      executeJdbcStmt(
+        s"""insert into $tabName values(3 , 'Xin Wu\\')""".stripMargin)
+      executeJdbcStmt(s"insert into $tabName values(4 , 'abcd\nefg\thij\r\n\\')")
+      executeJdbcStmt(s"insert into $tabName values(5 , 'klmn')")
+      executeJdbcStmt(s"insert into $tabName values(6 , '\nopqrst')")
+      executeJdbcStmt(s"insert into $tabName values(7 , 'uvwxyz\n')")
+
+      val testDf = sqlContext.read.format("com.ibm.spark.netezza").options(opts).load()
+      assert(testDf.schema.fieldNames(1) == "Name")
+      val expected = Seq(
+        Row(1, "John\\Doe1"),
+        Row(2, "\\Mike Doe2"),
+        Row(3, "Xin Wu\\"),
+        Row(4, "abcd\nefg\thij\r\n\\"),
+        Row(5, "klmn"),
+        Row(6, "\nopqrst"),
+        Row(7, "uvwxyz\n")
+      )
+      verifyAnswer(testDf, expected)
+    }
+  }
+
+  test("Test with different partition numbers.") {
+    var opts = defaultOpts + ("numPartitions" -> "0")
+    var testDf = sqlContext.read.format("com.ibm.spark.netezza").options(opts).load()
+    verifyAnswer(testDf, TestUtils.expectedData)
+
+    opts = defaultOpts + ("numPartitions" -> "1")
+    testDf = sqlContext.read.format("com.ibm.spark.netezza").options(opts).load()
+    verifyAnswer(testDf, TestUtils.expectedData)
+
+    opts = defaultOpts + ("numPartitions" -> "2")
+    testDf = sqlContext.read.format("com.ibm.spark.netezza").options(opts).load()
+    verifyAnswer(testDf, TestUtils.expectedData)
+
+    opts = defaultOpts + ("numPartitions" -> "3")
+    testDf = sqlContext.read.format("com.ibm.spark.netezza").options(opts).load()
+    verifyAnswer(testDf, TestUtils.expectedData)
+
+    opts = defaultOpts + ("numPartitions" -> "8")
+    testDf = sqlContext.read.format("com.ibm.spark.netezza").options(opts).load()
+    verifyAnswer(testDf, TestUtils.expectedData)
+  }
 }

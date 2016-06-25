@@ -187,7 +187,13 @@ class NetezzaDataReader(conn: Connection,
         sb.append(c.toChar)
       }
       if (!eol) {
-        prevChar = c
+        if (c == '\\' && prevChar == '\\') {
+          // don't set escaped escape character as previous char, otherwise if there
+          // is CRLF after that it will be considered as escape incorrectly.
+          prevChar = -1
+        } else {
+          prevChar = c
+        }
         c = input.read()
       }
     }

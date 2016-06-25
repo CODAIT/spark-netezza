@@ -31,7 +31,7 @@ class QueryIntegrationTestSuite extends IntegrationSuiteBase {
     Row(2, "Jeff Smith"),
     Row(3, "Kathy Saunders"),
     Row(4, null),
-    Row(5, "abcd\nefg\thij\r\n"),
+   Row(5, "abcd\nefg\thij\r\n\\"),
     Row(6, "klmn"))
 
   val expectedFiltered = Seq(Row(1, "John Doe"), Row(2, "Jeff Smith"))
@@ -45,7 +45,7 @@ class QueryIntegrationTestSuite extends IntegrationSuiteBase {
     executeJdbcStmt(s"insert into $tabName values(2 , 'Jeff Smith')")
     executeJdbcStmt(s"insert into $tabName values(3 , 'Kathy Saunders')")
     executeJdbcStmt(s"insert into $tabName values(4 , null)")
-    executeJdbcStmt(s"insert into $tabName values(5 , 'abcd\nefg\thij\r\n')")
+   executeJdbcStmt(s"insert into $tabName values(5 , 'abcd\nefg\thij\r\n\\')")
     executeJdbcStmt(s"insert into $tabName values(6 , 'klmn')")
   }
 
@@ -137,7 +137,7 @@ class QueryIntegrationTestSuite extends IntegrationSuiteBase {
     }.getMessage
 
     assert(errMsg contains "Partition column should be specified or" +
-      " number of partition should be set to 1 with the query options.")
+      " number of partitions should be set to 1 with the query option.")
   }
 
   test("Test simple query with num partitions set to zero.") {
