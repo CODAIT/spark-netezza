@@ -17,11 +17,6 @@
 
 package com.ibm.spark.netezza.integration
 
-import com.ibm.spark.netezza.NetezzaJdbcUtils
-import com.typesafe.config.ConfigFactory
-import org.apache.spark.SparkContext
-import org.apache.spark.sql.{SQLContext, DataFrame, Row}
-import org.netezza.error.NzSQLException
 import org.slf4j.LoggerFactory
 
 /**
@@ -52,8 +47,15 @@ class IntegrationSampleDBSuite extends IntegrationSuiteBase with QueryTest {
       "numPartitions" -> Integer.toString(numPartitions))
   }
 
+  // this test takes time , should be run separately with major changes.
   test("Fetch data from all the tables in the sample database.") {
-    getTables().foreach { tableName =>
+    val allTables = getTables().take(sampleDbmaxNumTables)
+    val tables = if (allTables.size > sampleDbmaxNumTables && !(sampleDbmaxNumTables < 0) ) {
+      allTables.take(sampleDbmaxNumTables)
+    } else {
+      allTables
+    }
+    tables.foreach { tableName =>
       log.info(s"Testing table: $tableName")
       val quoutedTableName = s""""$tableName""""
       val opts = defaultOpts() + ("dbTable" -> quoutedTableName)

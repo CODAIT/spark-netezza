@@ -26,7 +26,7 @@ scalaVersion := "2.10.5"
 
 crossScalaVersions := Seq("2.10.5", "2.11.7")
 
-sparkVersion := "1.6.0"
+sparkVersion := "1.5.2"
 
 // All Spark Packages need a license
 licenses := Seq("Apache-2.0" -> url("http://opensource.org/licenses/Apache-2.0"))
@@ -36,17 +36,31 @@ sparkComponents := Seq("sql", "hive")
 
 libraryDependencies ++= Seq(
   "org.apache.commons" % "commons-csv" % "1.2",
-  "org.scalatest" %% "scalatest" % "2.1.3",
+  "org.scalatest" %% "scalatest" % "2.1.3" % "it,test",
   "com.typesafe" % "config" % "1.2.1"
 )
 
-//Developers only: for integration test, obtain netezza jdbc jar locally and uncomment below line
-//unmanagedJars in Compile += file("/pathTo/nzjdbc.jar")
+parallelExecution in Test := false
+
+// Developers only: for integration test, obtain netezza jdbc jar locally and uncomment below line
+// unmanagedJars in Compile += file("/pathTo/nzjdbc.jar")
+
+lazy val IntegrationTest = config("it") extend Test
+
+val testSparkVersion = settingKey[String]("Spark version to test against")
 
 lazy val root =
     Project("root", file("."))
       .configs( IntegrationTest )
       .settings( Defaults.itSettings : _*)
+      .settings(
+        testSparkVersion := sys.props.get("spark.testVersion").getOrElse(sparkVersion.value),
+        libraryDependencies ++= Seq(
+          "org.apache.spark" %% "spark-core" % testSparkVersion.value % "test" force(),
+          "org.apache.spark" %% "spark-sql" % testSparkVersion.value % "test" force(),
+          "org.apache.spark" %% "spark-hive" % testSparkVersion.value % "test,it" force()
+        )
+      )
 
 spAppendScalaVersion := true
 

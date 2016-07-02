@@ -38,7 +38,7 @@ trait IntegrationSuiteBase extends FunSuite with BeforeAndAfterAll with QueryTes
   protected var user: String = _
   protected var password: String = _
   protected var numPartitions: Int = _
-
+  protected var sampleDbmaxNumTables: Int = _
 
   override def beforeAll(): Unit = {
     super.beforeAll()
@@ -52,7 +52,7 @@ trait IntegrationSuiteBase extends FunSuite with BeforeAndAfterAll with QueryTes
     user = conf.getString("test.integration.user")
     password = conf.getString("test.integration.password")
     numPartitions = conf.getInt("test.integration.partition.number")
-
+    sampleDbmaxNumTables = conf.getInt("test.integration.max.numtables")
     prop.setProperty("user", user)
     prop.setProperty("password", password)
     conn = NetezzaJdbcUtils.getConnector(testURL, prop)()

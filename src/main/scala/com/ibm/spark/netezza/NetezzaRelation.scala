@@ -41,6 +41,13 @@ private[netezza] case class NetezzaRelation(
 
   override val schema: StructType = NetezzaSchema.getSparkSqlSchema(url, properties, table)
 
+  /**
+    * This method is introduced in 1.6 as optimization. But this package compiles from 1.5.
+    */
+  def unhandledFilters(filters: Array[Filter]): Array[Filter] = {
+    filters.filter(NetezzaFilters.generateFilterExpr(_).isEmpty)
+  }
+
   override def buildScan(requiredColumns: Array[String], filters: Array[Filter]): RDD[Row] = {
 
     if (requiredColumns.isEmpty) {
