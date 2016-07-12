@@ -62,6 +62,10 @@ lazy val root =
         )
       )
 
+// This is required because explicitly specify Spark dependencies for tests
+// rather than using the sbt-spark-package plugin to provide them.
+spIgnoreProvided := true
+
 spAppendScalaVersion := true
 
 spIncludeMaven := true
