@@ -242,4 +242,12 @@ class IntegrationTestSuite extends IntegrationSuiteBase {
     testDf = sqlContext.read.format("com.ibm.spark.netezza").options(opts).load()
     verifyAnswer(testDf, TestUtils.expectedData)
   }
+
+  test("test plan outout") {
+    val testDf = sqlContext.read.format("com.ibm.spark.netezza").options(defaultOpts).load()
+    // explain prints output, i could not find a simple way without calling
+    // intenal spark classes. Not worth adding spark internal dependencies
+    // for a test case. Other option may be to grab the console output.
+    testDf.explain(true)
+  }
 }

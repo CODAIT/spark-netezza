@@ -79,4 +79,14 @@ private[netezza] case class NetezzaRelation(
     val emptyRow = Row.empty
     sqlContext.sparkContext.parallelize(1L to numRows, numPartitions).map(_ => emptyRow)
   }
+
+  /**
+    * The results of the toString() method of this class is shown in the spark sql plan outpit.
+    * Overiding the toString() to avoid output does not become big, and also does not
+    * include server credentials.
+    */
+  override def toString: String = {
+    // credentials should not be included in the plan output, table information is sufficient.
+    s"NetezzaRelation(${table})"
+  }
 }
