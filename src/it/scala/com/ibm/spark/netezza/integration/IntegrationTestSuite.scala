@@ -21,6 +21,7 @@ import java.sql.Timestamp
 
 import org.apache.spark.sql.{Row, DataFrame}
 import org.netezza.error.NzSQLException
+import org.scalatest.Ignore
 
 class IntegrationTestSuite extends IntegrationSuiteBase {
 
@@ -250,4 +251,28 @@ class IntegrationTestSuite extends IntegrationSuiteBase {
     // for a test case. Other option may be to grab the console output.
     testDf.explain(true)
   }
+
+  test("test netezza datasource alias/shortname in format") {
+    val testDf = sqlContext.read.format("netezza").options(defaultOpts).load()
+    verifyAnswer(testDf, TestUtils.expectedData)
+  }
+
+  test("test netezza datasource table with alias/shortname") {
+    val opts = defaultOpts()
+    sqlContext.sql(
+      s"""
+         |CREATE TEMPORARY TABLE netezza_table
+         |USING netezza
+         |OPTIONS (
+         |url '${opts("url")}',
+         |user '${opts("user")}',
+         |password '${opts("password")}',
+         |dbtable '${opts("dbtable")}')
+    """.stripMargin.replaceAll("\n", " ")
+    )
+
+    val testDf = sqlContext.sql("SELECT * FROM netezza_table")
+    verifyAnswer(testDf, TestUtils.expectedData)
+  }
+
 }

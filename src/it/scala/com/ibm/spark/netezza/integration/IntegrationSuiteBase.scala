@@ -24,8 +24,11 @@ import com.typesafe.config.ConfigFactory
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql.{Row, DataFrame, SQLContext}
 import org.scalatest.{BeforeAndAfterAll, FunSuite}
+import org.slf4j.LoggerFactory
 
 trait IntegrationSuiteBase extends FunSuite with BeforeAndAfterAll with QueryTest{
+  private val log = LoggerFactory.getLogger(getClass)
+
   protected var sc: SparkContext = _
   protected var sqlContext: SQLContext = _
   protected var conn: Connection = _
@@ -55,7 +58,9 @@ trait IntegrationSuiteBase extends FunSuite with BeforeAndAfterAll with QueryTes
     sampleDbmaxNumTables = conf.getInt("test.integration.max.numtables")
     prop.setProperty("user", user)
     prop.setProperty("password", password)
+    log.info("Attempting to get connection from" + testURL)
     conn = NetezzaJdbcUtils.getConnector(testURL, prop)()
+    log.info("got connection.")
   }
 
   override def afterAll(): Unit = {
