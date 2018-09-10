@@ -7,7 +7,7 @@ You can download the `Netezza Connector for Apache Spark` assembly jars from her
 
 Apache Spark Version | Release # | Binary Location
 --- | --- | ---
-1.5.2+ | v0.1.1 | [spark-netezza-assembly-0.1.1.jar] (https://github.com/SparkTC/spark-netezza/releases/download/v0.1.1/spark-netezza-assembly-0.1.1.jar)
+1.5.2+ | v0.1.1 | [spark-netezza-assembly-0.1.1.jar](https://github.com/SparkTC/spark-netezza/releases/download/v0.1.1/spark-netezza-assembly-0.1.1.jar)
 
 ## Usage
 
